@@ -23,6 +23,10 @@
 
 ---
 
+<p align="center">
+  <img src="preview.png" alt="Cream's Macro Preview" width="800">
+</p>
+
 ## Features
 
 - **Task Queue** — Queue multiple farming tasks with different modes, stages, and repeat counts. Supports looping.
@@ -96,19 +100,6 @@ python build.py
 - Python 3.10+
 - Windows 10/11
 - Dependencies: `pywebview`, `mss`, `opencv-python-headless`, `numpy`, `keyboard`, `requests`
-
-## Releasing a New Version
-
-1. Bump `VERSION` in `core/version.py`
-2. Commit and tag:
-   ```bash
-   git add -A
-   git commit -m "v1.x.x - description"
-   git tag v1.x.x
-   git push origin main --tags
-   ```
-3. GitHub Actions builds the exe and publishes a release automatically
-4. Users running the macro will see an update banner on next launch
 
 ## How It Works
 
