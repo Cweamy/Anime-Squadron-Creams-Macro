@@ -34,9 +34,6 @@ jobs:
           print('Generated logo.ico')
           "
 
-      - name: Generate embedded assets
-        run: python generate_assets.py
-
       - name: Build exe
         run: python build.py
 
