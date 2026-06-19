@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cream's Macro | Anime Squadron</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Waiting overlay (shown when Roblox not found) -->
+  <div id="waitingOverlay" class="waiting-overlay">
+    <div class="waiting-content">
+      <div class="waiting-spinner"></div>
+      <div class="waiting-title">Waiting for Roblox...</div>
+      <div class="waiting-sub">Open Anime Squadron in Roblox to continue</div>
+      <button class="btn btn-start" onclick="launchRoblox()" style="margin-top:12px;flex:none;padding:10px 24px">
+        🚀 Launch Game
+      </button>
+    </div>
+  </div>
+
+  <div class="header">
+    <span class="title">Cream's Macro</span>
+    <span class="subtitle">Anime Squadron</span>
+  </div>
+
+  <div class="btn-row">
+    <button id="btnStart" class="btn btn-start" onclick="startQueue()">▶ Start</button>
+    <button id="btnStop" class="btn btn-stop" disabled onclick="stopMacro()">⏹ Stop</button>
+    <button class="btn btn-icon" onclick="rejoinGame()" title="Rejoin game via deep link">🔄</button>
+    <button class="btn btn-icon" onclick="positionRoblox()" title="Reposition Roblox">↻</button>
+  </div>
+
+  <!-- Task Queue -->
+  <fieldset class="group">
+    <legend>Task Queue</legend>
+    <div class="queue-toolbar">
+      <button class="btn btn-sm btn-add" onclick="addTask()">+ Add</button>
+      <button class="btn btn-sm btn-ghost" onclick="clearQueue()">Clear</button>
+      <button class="btn btn-sm btn-ghost" onclick="saveQueue()">Save</button>
+      <label class="toggle">
+        <input type="checkbox" id="chkStartOver">
+        <span class="toggle-track"></span>
+        Loop
+      </label>
+    </div>
+    <div id="taskList"></div>
+  </fieldset>
+
+  <!-- Challenge Rewards -->
+  <fieldset class="group">
+    <legend>Challenge Rewards</legend>
+    <label class="toggle">
+      <input type="checkbox" id="chkChallenges">
+      <span class="toggle-track"></span>
+      Auto-check every 30 min
+    </label>
+    <div class="divider"></div>
+    <div id="rewardList"><span class="muted">Loading...</span></div>
+  </fieldset>
+
+  <!-- Discord Webhook -->
+  <fieldset class="group">
+    <legend>Webhook</legend>
+    <div class="webhook-row">
+      <span id="webhookDot" class="wh-dot dot-none"></span>
+      <span id="webhookLabel" class="wh-label">Not set</span>
+      <button class="btn btn-sm btn-accent" onclick="pasteWebhook()">Paste</button>
+      <button class="btn btn-sm btn-danger-sm" onclick="clearWebhook()">✕</button>
+    </div>
+    <div class="webhook-toggles">
+      <label class="toggle">
+        <input type="checkbox" id="chkWebhook" checked>
+        <span class="toggle-track"></span>
+        Enable
+      </label>
+      <label class="toggle">
+        <input type="checkbox" id="chkSilent">
+        <span class="toggle-track"></span>
+        Silent
+      </label>
+    </div>
+    <div class="screenshot-row">
+      <span class="label-sm">Screenshot:</span>
+      <select id="selScreenshot">
+        <option value="roblox" selected>Roblox</option>
+        <option value="fullscreen">Full Screen</option>
+        <option value="none">None</option>
+      </select>
+    </div>
+  </fieldset>
+
+  <!-- Status -->
+  <fieldset class="group group-status">
+    <legend>Status</legend>
+    <div id="txtState" class="state-text">IDLE</div>
+    <div id="txtStats" class="stats-text">V: 0  |  D: 0  |  Runs: 0</div>
+  </fieldset>
+
+  <!-- Update Banner -->
+  <div id="updateBanner" class="update-banner hidden">
+    <span id="updateText">A new version is available!</span>
+    <button id="btnUpdate" class="btn btn-sm btn-accent" onclick="doUpdate()">Update</button>
+  </div>
+
+  <div class="footer">
+    <span id="versionLabel" class="version-label">v...</span>
+  </div>
+
+  <input type="hidden" id="txtWebhook">
+  <script src="app.js"></script>
+</body>
+</html>
