@@ -16,9 +16,10 @@ settings.json
 # Raw assets (embedded in core/asset_data.py instead)
 assets/
 
-# Generated from logo.png
-logo.ico
+# Generated logo.ico is needed for builds, so don't ignore it
+# logo.ico
 
 # Misc
 .env
 *.egg-info/
+.claude/

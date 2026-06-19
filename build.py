@@ -12,7 +12,7 @@ cmd = [
     sys.executable, "-m", "PyInstaller",
     "--onefile",
     "--windowed",
-    "--name", "CreamMacro",
+    "--name", "Anime Squadron Cream's Macro",
     "--icon", os.path.join(ROOT, "logo.ico"),
     "--add-data", f"{os.path.join(ROOT, 'ui')};ui",
     "--add-data", f"{os.path.join(ROOT, 'logo.png')};.",
@@ -24,5 +24,8 @@ cmd = [
 
 print("Building exe...")
 print(" ".join(cmd))
-subprocess.run(cmd, cwd=ROOT)
-print("\nDone! Check dist/CreamMacro.exe")
+result = subprocess.run(cmd, cwd=ROOT)
+if result.returncode != 0:
+    print("\nBuild FAILED!")
+    sys.exit(1)
+print("\nDone! Check dist/Anime Squadron Cream's Macro.exe")
