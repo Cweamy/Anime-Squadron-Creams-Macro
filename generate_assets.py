@@ -1,5 +1,5 @@
 """
-Reads all PNGs from assets/nav/ and assets/rewards/, encodes them as
+Reads all PNGs from all subdirectories under assets/, encodes them as
 base64 strings, and writes core/asset_data.py.
 
 Run this once before building the exe:
@@ -14,10 +14,11 @@ import glob
 ASSET_DIR = os.path.join(os.path.dirname(__file__), "assets")
 OUTPUT = os.path.join(os.path.dirname(__file__), "core", "asset_data.py")
 
-DIRS = [
-    os.path.join(ASSET_DIR, "nav"),
-    os.path.join(ASSET_DIR, "rewards"),
-]
+DIRS = []
+for _d in os.listdir(ASSET_DIR):
+    _full = os.path.join(ASSET_DIR, _d)
+    if os.path.isdir(_full):
+        DIRS.append(_full)
 
 
 def main():

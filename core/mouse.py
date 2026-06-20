@@ -80,7 +80,7 @@ def scroll_down(amount: int = -120):
 
 
 class Mouse:
-    """Stateful mouse with jitter and retry-based offset (mirrors AHK ClickAt)."""
+    """Stateful mouse with jitter and retry-based offset."""
 
     def __init__(self):
         self._click_count = 0

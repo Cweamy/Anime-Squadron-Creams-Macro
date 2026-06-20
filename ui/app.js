@@ -32,7 +32,7 @@ window.addEventListener('pywebviewready', async () => {
   } catch (e) {}
 
   try { checkForUpdate(); } catch (e) {}
-  try { await refreshLoadouts(); } catch (e) {}
+  try { await refreshLoadouts(); await refreshAppendList(); } catch (e) {}
 
   setInterval(pollStatus, 250);
   setInterval(autoSaveQueue, 10000);
@@ -376,11 +376,43 @@ const PRESETS = {
     ],
     settings: { check_challenges: true, loop: true, rewards: ["trait_reroll.png"] },
   },
-  "Big 3 Secret": {
+  "Secret Mats": {
     tasks: [
       { mode: "Story", repeat: 10, map: "GT City", act: "Chapter 10", diff: "Hard" },
       { mode: "Story", repeat: 10, map: "Marine Lobby", act: "Chapter 10", diff: "Hard" },
       { mode: "Story", repeat: 10, map: "Ninja Village", act: "Chapter 10", diff: "Hard" },
+    ],
+    settings: { loop: true },
+  },
+  "Mythic Mats": {
+    tasks: [
+      { mode: "Story", repeat: 10, map: "GT City", act: "Chapter 8", diff: "Hard" },
+      { mode: "Story", repeat: 10, map: "Marine Lobby", act: "Chapter 8", diff: "Hard" },
+      { mode: "Story", repeat: 10, map: "Ninja Village", act: "Chapter 8", diff: "Hard" },
+    ],
+    settings: { loop: true },
+  },
+  "Legendary Mats": {
+    tasks: [
+      { mode: "Story", repeat: 10, map: "GT City", act: "Chapter 6", diff: "Hard" },
+      { mode: "Story", repeat: 10, map: "Marine Lobby", act: "Chapter 6", diff: "Hard" },
+      { mode: "Story", repeat: 10, map: "Ninja Village", act: "Chapter 6", diff: "Hard" },
+    ],
+    settings: { loop: true },
+  },
+  "Epic Mats": {
+    tasks: [
+      { mode: "Story", repeat: 10, map: "GT City", act: "Chapter 4", diff: "Hard" },
+      { mode: "Story", repeat: 10, map: "Marine Lobby", act: "Chapter 4", diff: "Hard" },
+      { mode: "Story", repeat: 10, map: "Ninja Village", act: "Chapter 4", diff: "Hard" },
+    ],
+    settings: { loop: true },
+  },
+  "Rare Mats": {
+    tasks: [
+      { mode: "Story", repeat: 10, map: "GT City", act: "Chapter 2", diff: "Hard" },
+      { mode: "Story", repeat: 10, map: "Marine Lobby", act: "Chapter 2", diff: "Hard" },
+      { mode: "Story", repeat: 10, map: "Ninja Village", act: "Chapter 2", diff: "Hard" },
     ],
     settings: { loop: true },
   },
@@ -452,6 +484,7 @@ async function confirmSaveLoadout() {
   } catch (e) { return; }
   document.getElementById('loadoutNameRow').style.display = 'none';
   await refreshLoadouts();
+  await refreshAppendList();
   document.getElementById('selLoadout').value = 'user:' + name;
   updateDeleteBtn();
 }
@@ -505,6 +538,64 @@ async function onLoadoutSelect() {
   }
 }
 
+async function refreshAppendList() {
+  const sel = document.getElementById('selAppend');
+  sel.innerHTML = '<option value="">+</option>';
+  for (const name of Object.keys(PRESETS)) {
+    const opt = document.createElement('option');
+    opt.value = 'preset:' + name;
+    opt.textContent = '+ ' + name;
+    sel.appendChild(opt);
+  }
+  try {
+    const loadouts = await api().get_loadouts();
+    for (const name of Object.keys(loadouts).sort()) {
+      const opt = document.createElement('option');
+      opt.value = 'user:' + name;
+      opt.textContent = '+ ' + name;
+      sel.appendChild(opt);
+    }
+  } catch (e) {}
+}
+
+async function onAppendSelect() {
+  const sel = document.getElementById('selAppend');
+  const val = sel.value;
+  sel.value = '';
+  if (!val) return;
+
+  let tasks = [], name = '';
+  if (val.startsWith('preset:')) {
+    name = val.replace('preset:', '');
+    const preset = PRESETS[name];
+    if (preset) tasks = preset.tasks;
+  } else if (val.startsWith('user:')) {
+    name = val.replace('user:', '');
+    try {
+      const loadouts = await api().get_loadouts();
+      tasks = loadouts[name] || [];
+    } catch (e) {}
+  }
+
+  if (tasks.length > 0) {
+    for (const t of tasks) addTask(t);
+    showToast('+ ' + name + ' (' + tasks.length + ' tasks)');
+  }
+}
+
+function showToast(msg) {
+  let toast = document.getElementById('toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast';
+    toast.className = 'toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
 async function deleteLoadout() {
   const sel = document.getElementById('selLoadout');
   const val = sel.value;
@@ -515,6 +606,7 @@ async function deleteLoadout() {
   } catch (e) { return; }
   sel.value = '';
   await refreshLoadouts();
+  await refreshAppendList();
 }
 
 async function startQueue() {

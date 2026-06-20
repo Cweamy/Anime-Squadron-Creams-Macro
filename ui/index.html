@@ -77,6 +77,9 @@
         <select id="selLoadout" onchange="onLoadoutSelect()">
           <option value="">-- Loadouts --</option>
         </select>
+        <select id="selAppend" onchange="onAppendSelect()" title="Pick a loadout to add to queue">
+          <option value="">+</option>
+        </select>
         <button id="btnDelLoadout" class="btn btn-sm btn-danger-sm" onclick="deleteLoadout()" title="Delete selected loadout" style="display:none">
           <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px;vertical-align:-1px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>

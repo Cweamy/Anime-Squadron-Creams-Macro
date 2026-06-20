@@ -24,3 +24,6 @@ assets/
 *.egg-info/
 .claude/
 run.bat
+*.ahk
+nuitka-crash-report.xml
+*_backup.py

@@ -10,7 +10,6 @@ else:
 
 SCRIPT_DIR = BUNDLE_DIR
 ASSET_DIR = os.path.join(SCRIPT_DIR, "assets")
-NAV_DIR = os.path.join(ASSET_DIR, "nav")
 REWARD_DIR = os.path.join(ASSET_DIR, "rewards")
 
 GAME_TITLE = "Roblox"
@@ -26,23 +25,23 @@ MAX_STATE_RETRIES = 20
 REFRESH_INTERVAL_MS = 1800000  # 30 minutes
 
 RAID_ACT_MAP = {
-    "Hidden Danger": "raid_act1.png",
-    "Saiyan Hunt": "raid_act2.png",
-    "Ruler Dragon": "raid_act3.png",
-    "The Ultimate Evil": "raid_act4.png",
+    "Hidden Danger": "raid/hidden_danger.png",
+    "Saiyan Hunt": "raid/saiyan_hunt.png",
+    "Ruler Dragon": "raid/ruler_dragon.png",
+    "The Ultimate Evil": "raid/ultimate_evil.png",
 }
 
 SQUAD_STORY_MAP = {
-    "GT City": "squadron_story1.png",
-    "Marine Lobby": "squadron_story2.png",
-    "Ninja Village": "squadron_story3.png",
+    "GT City": "squadron/gt_city.png",
+    "Marine Lobby": "squadron/marine_lobby.png",
+    "Ninja Village": "squadron/ninja_village.png",
 }
 
 SQUAD_CHAP_MAP = {
-    "Chapter 1": "squadron_ch1.png",
-    "Chapter 2": "squadron_ch2.png",
-    "Chapter 3": "squadron_ch3.png",
-    "Chapter 4": "squadron_ch4.png",
+    "Chapter 1": "squadron/chapter1.png",
+    "Chapter 2": "squadron/chapter2.png",
+    "Chapter 3": "squadron/chapter3.png",
+    "Chapter 4": "squadron/chapter4.png",
 }
 
 STORY_INDEX_MAP = {"GT City": 1, "Marine Lobby": 2, "Ninja Village": 3}
