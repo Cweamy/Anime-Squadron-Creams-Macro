@@ -67,7 +67,7 @@ def apply_update_and_restart(new_exe_path: str):
     batch = os.path.join(os.path.dirname(current_exe), "_update.bat")
     with open(batch, "w") as f:
         f.write("@echo off\n")
-        f.write("timeout /t 2 /nobreak >nul\n")
+        f.write("timeout /t 5 /nobreak >nul\n")
         f.write(f'if exist "{old_exe}" del /f "{old_exe}"\n')
         f.write(f'move /y "{current_exe}" "{old_exe}"\n')
         f.write(f'move /y "{new_exe_path}" "{current_exe}"\n')

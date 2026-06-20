@@ -185,4 +185,4 @@ class Screen:
 
     def find_reward(self, img_name: str, win_x: int, win_y: int, win_w: int, win_h: int) -> tuple[int, int] | None:
         path = os.path.join(REWARD_DIR, img_name)
-        return self.find_in_region(path, win_x, win_y, win_w, win_h)
+        return self.find_in_region(path, win_x, win_y, win_w, win_h, threshold=0.85)

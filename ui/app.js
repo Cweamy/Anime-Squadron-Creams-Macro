@@ -19,6 +19,11 @@ window.addEventListener('pywebviewready', async () => {
     if (s.loop) document.getElementById('chkStartOver').checked = true;
     if (s.check_challenges) document.getElementById('chkChallenges').checked = true;
     if (s.screenshot_mode) document.getElementById('selScreenshot').value = s.screenshot_mode;
+    if (s.desired_rewards && s.desired_rewards.length > 0) {
+      document.querySelectorAll('#rewardList input[type="checkbox"]').forEach(el => {
+        el.checked = s.desired_rewards.includes(el.id.replace('rwd_', ''));
+      });
+    }
     if (s.queue && s.queue.length > 0) {
       for (const t of s.queue) addTask(t);
     }
@@ -159,7 +164,7 @@ async function loadRewards() {
     for (const f of files) {
       const label = f.replace('.png', '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
       const id = 'rwd_' + f;
-      el.innerHTML += `<div class="reward-item"><input type="checkbox" id="${id}" checked><label for="${id}">${label}</label></div>`;
+      el.innerHTML += `<div class="reward-item"><input type="checkbox" id="${id}"><label for="${id}">${label}</label></div>`;
     }
   } catch (e) {
     el.innerHTML = '<span class="muted">Failed to load rewards</span>';
@@ -359,6 +364,7 @@ async function autoSaveQueue() {
       loop: document.getElementById('chkStartOver').checked,
       check_challenges: document.getElementById('chkChallenges').checked,
       screenshot_mode: document.getElementById('selScreenshot').value,
+      desired_rewards: getSelectedRewards(),
       queue: tasks,
     });
     const sel = document.getElementById('selLoadout').value;

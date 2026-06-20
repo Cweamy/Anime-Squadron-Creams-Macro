@@ -492,15 +492,21 @@ class GameBot:
         time.sleep(0.3)
 
         cx = self._rx + self._rw * 490 // 1000
+        chap_y = self._ry + self._rh * 400 // 1000
+        from core.mouse import move_to
+        move_to(cx, chap_y)
+        time.sleep(0.1)
+        self._tap((cx, chap_y), times=1, gap=50, jitter=False)
+        time.sleep(0.15)
+
         if self._st_chap >= 8:
             self.input.scroll_chapter_list(self._rx, self._ry, self._rw, self._rh)
             cy = self._ry + self._rh * (597 - (10 - self._st_chap) * 45) // 1000
         else:
             cy = self._ry + self._rh * (327 + (self._st_chap - 1) * 45) // 1000
-        from core.mouse import move_to
         move_to(cx, cy)
         time.sleep(0.1)
-        self._tap((cx, cy), times=2, gap=150)
+        self._tap((cx, cy), times=2, gap=150, jitter=False)
         time.sleep(0.3)
 
     def _pick_aizen(self):
@@ -694,6 +700,8 @@ class GameBot:
     def _should_check_rewards(self) -> bool:
         if not self._challenge_check or self._mode == "Challenge":
             return False
+        if not self._reward_files:
+            return False
         if self._last_refresh_slot == -1:
             return True
         slot = self._time_slot()
@@ -748,7 +756,7 @@ class GameBot:
         self._phase = "challenge_check"
         self._push()
         self._last_refresh_slot = self._time_slot()
-        self.log.log("Challenge check: running initial check before farming")
+        self.log.log(f"Challenge check: looking for {self._reward_files}")
 
         self._navigate_to_stage_screen()
 
@@ -758,17 +766,13 @@ class GameBot:
         self._pick_regular_challenge()
 
         time.sleep(1.5)
-        found = False
-        for rf in self._reward_files:
-            if self.vision.find_reward(rf, self._rx, self._ry, self._rw, self._rh):
-                found = True
-                self.log.log(f"Reward found: {rf}")
-                break
+        found = self._scan_for_desired_reward()
 
         if found:
             self._create_room()
             self._click_start()
         else:
+            self.log.log("Challenge check: no desired reward found, skipping")
             self._mode = saved_mode
             self._phase = "returning"
             self._push()
@@ -796,20 +800,29 @@ class GameBot:
         self._pick_regular_challenge()
 
         time.sleep(1.5)
-        found = False
-        for rf in self._reward_files:
-            if self.vision.find_reward(rf, self._rx, self._ry, self._rw, self._rh):
-                found = True
-                self.log.log(f"Reward found: {rf}")
-                break
+        found = self._scan_for_desired_reward()
 
         if found:
             self._create_room()
             self._click_start()
         else:
+            self.log.log("Challenge check: no desired reward found, skipping")
             self._mode = saved_mode
             self._phase = "returning"
             self._push()
+
+    def _scan_for_desired_reward(self) -> bool:
+        if not self._reward_files:
+            self.log.log("Challenge check: no rewards selected, skipping")
+            return False
+        for rf in self._reward_files:
+            hit = self.vision.find_reward(rf, self._rx, self._ry, self._rw, self._rh)
+            if hit:
+                self.log.log(f"Challenge check: FOUND desired reward {rf}")
+                return True
+            else:
+                self.log.log(f"Challenge check: {rf} not on screen")
+        return False
 
     # ══════════════════════════════════════════════════════════════
     # DISCONNECT & CRASH RECOVERY

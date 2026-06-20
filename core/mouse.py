@@ -126,11 +126,9 @@ class Mouse:
         hx = win_x + win_w * 490 // 1000
         hy = win_y + win_h * 440 // 1000
         move_to(hx, hy)
-        time.sleep(0.12)
-        move_relative(1, 0)
-        time.sleep(0.12)
+        time.sleep(0.05)
         start = time.monotonic()
-        while time.monotonic() - start < 2.5:
-            scroll_down(-120)
-            time.sleep(0.06)
-        time.sleep(0.4)
+        while time.monotonic() - start < 0.8:
+            scroll_down(-300)
+            time.sleep(0.02)
+        time.sleep(0.15)
