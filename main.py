@@ -27,6 +27,7 @@ PANEL_WIDTH = 350
 GUI_WIDTH_FULL = FIXED_WIN_W + PANEL_WIDTH
 GUI_WIDTH_SMALL = PANEL_WIDTH
 GUI_HEIGHT = FIXED_WIN_H
+GUI_HEIGHT_COMPACT = 300
 ICO_PATH = os.path.join(SCRIPT_DIR, "logo.ico")
 
 
@@ -82,6 +83,24 @@ class Api:
     def save_settings_full(self, data: dict):
         cfg.save(data)
 
+    def get_loadouts(self) -> dict:
+        data = cfg.load()
+        return data.get("loadouts", {})
+
+    def save_loadout(self, name: str, tasks: list):
+        data = cfg.load()
+        loadouts = data.get("loadouts", {})
+        loadouts[name] = tasks
+        data["loadouts"] = loadouts
+        cfg.save(data)
+
+    def delete_loadout(self, name: str):
+        data = cfg.load()
+        loadouts = data.get("loadouts", {})
+        loadouts.pop(name, None)
+        data["loadouts"] = loadouts
+        cfg.save(data)
+
     def get_reward_files(self) -> list:
         files = set()
         if os.path.isdir(REWARD_DIR):
@@ -108,6 +127,9 @@ class Api:
                 self._window.evaluate_js(f"onUpdateProgress({pct})")
         path = download_update(url, callback=on_progress)
         if path:
+            self.bot.halt()
+            self.bot.undock_game()
+            keyboard.unhook_all()
             apply_update_and_restart(path)
             return {"ok": True}
         return {"ok": False}
@@ -158,12 +180,20 @@ def main():
     api = Api()
     ui_path = os.path.join(os.path.dirname(__file__), "ui", "index.html")
 
+    screen_w, screen_h = wm.get_screen_size()
+    start_w = GUI_WIDTH_SMALL + 16
+    start_h = GUI_HEIGHT_COMPACT
+    start_x = (screen_w - start_w) // 2
+    start_y = (screen_h - start_h) // 2
+
     window = webview.create_window(
         GUI_TITLE,
         url=ui_path,
         js_api=api,
-        width=GUI_WIDTH_SMALL + 16,
-        height=GUI_HEIGHT + 39,
+        width=start_w,
+        height=start_h,
+        x=start_x,
+        y=start_y,
         resizable=False,
         on_top=True,
         text_select=False,

@@ -199,6 +199,31 @@ class Screen:
                 return name, win_x + cx, win_y + cy
         return None
 
+    def detect_result_color(self, rx: int, ry: int, rw: int, rh: int) -> str | None:
+        sx = rx + int(rw * 0.20)
+        sy = ry + int(rh * 0.28)
+        sw = int(rw * 0.10)
+        sh = int(rh * 0.07)
+        frame = self.capture(sx, sy, sw, sh)
+        if frame is None:
+            return None
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+        green_mask = cv2.inRange(hsv, np.array([35, 50, 50]), np.array([85, 255, 255]))
+        green_pct = cv2.countNonZero(green_mask) / max(green_mask.size, 1)
+
+        red_lo = cv2.inRange(hsv, np.array([0, 50, 50]), np.array([12, 255, 255]))
+        red_hi = cv2.inRange(hsv, np.array([160, 50, 50]), np.array([180, 255, 255]))
+        red_pct = cv2.countNonZero(cv2.bitwise_or(red_lo, red_hi)) / max(red_lo.size, 1)
+
+        self.logger.log(f"Screen: RESULT COLOR green={green_pct:.2f} red={red_pct:.2f}")
+
+        if green_pct > red_pct and green_pct > 0.15:
+            return "victory"
+        if red_pct > green_pct and red_pct > 0.15:
+            return "defeat"
+        return None
+
     def find_nav(self, img_name: str, win_x: int, win_y: int, win_w: int, win_h: int,
                  threshold: float | None = None) -> tuple[int, int] | None:
         path = os.path.join(NAV_DIR, img_name)

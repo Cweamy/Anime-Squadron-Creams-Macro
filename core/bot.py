@@ -182,9 +182,14 @@ class GameBot:
             self._dock_game()
 
     def undock_game(self):
-        if self._docked and self._hwnd and wm.is_window(self._hwnd):
-            wm.set_parent(self._hwnd, 0)
-            wm.restore_borders(self._hwnd)
+        if self._hwnd:
+            try:
+                if wm.is_window(self._hwnd):
+                    wm.set_parent(self._hwnd, 0)
+                    wm.restore_borders(self._hwnd)
+                    wm.move_window(self._hwnd, 0, 0, FIXED_WIN_W + 16, FIXED_WIN_H + 39)
+            except Exception:
+                pass
             self._docked = False
 
     def launch_game(self):
@@ -278,8 +283,7 @@ class GameBot:
             order = [
                 "shop_icon.png", "create_room_btn.png", *STAGE_TABS,
                 "start_btn.png", "team_btn.png",
-                "victory_banner.png", "defeat_banner.png",
-                "retry_btn.png", "replay_btn.png", "reconnect_btn.png",
+                "replay_btn.png", "retry_btn.png", "reconnect_btn.png",
             ]
 
         hit = self.vision.find_first(order, self._rx, self._ry, self._rw, self._rh)
@@ -297,8 +301,7 @@ class GameBot:
             return Scene.IN_ROOM
         if name == "team_btn.png":
             return Scene.BATTLING
-        if name in ("victory_banner.png", "defeat_banner.png",
-                     "retry_btn.png", "replay_btn.png"):
+        if name in ("replay_btn.png", "retry_btn.png"):
             return Scene.RESULTS
         if name == "reconnect_btn.png":
             return Scene.DISCONNECTED
@@ -312,7 +315,6 @@ class GameBot:
         self._phase = "scanning"
         self._push()
         hint = ""
-        unknown_streak = 0
 
         for attempt in range(30):
             if self._halt.is_set():
@@ -320,18 +322,15 @@ class GameBot:
             self._refresh_bounds()
 
             if self._handle_disconnect():
-                unknown_streak = 0
                 continue
 
             scene = self._read_scene(hint)
             hint = ""
 
             if scene == Scene.LOBBY:
-                unknown_streak = 0
                 self._go_through_lobby()
                 hint = "post_lobby"
             elif scene == Scene.PLAY_AREA:
-                unknown_streak = 0
                 self._open_stage_menu()
             elif scene == Scene.STAGE_SELECT:
                 self._select_and_start()
@@ -345,18 +344,10 @@ class GameBot:
                 self._replay_or_retry()
                 return
             elif scene == Scene.DISCONNECTED:
-                unknown_streak = 0
                 self._handle_disconnect()
             else:
-                unknown_streak += 1
-                if unknown_streak >= 3:
-                    self.log.log("Navigation: unknown screen, pressing Escape to dismiss popup")
-                    import keyboard as kb
-                    kb.press_and_release("escape")
-                    time.sleep(0.5)
-                    unknown_streak = 0
-                else:
-                    time.sleep(0.3)
+                self.log.log(f"Navigation: unknown screen (attempt {attempt + 1}/30)")
+                time.sleep(0.3)
 
     def _go_through_lobby(self):
         self._phase = "lobby"
@@ -474,13 +465,13 @@ class GameBot:
         for _ in range(5):
             if self._see(self._raid_act):
                 self._tap(self._see(self._raid_act), times=2, gap=100)
-                time.sleep(0.6)
+                time.sleep(0.25)
                 return
             act_idx = {"raid_act1.png": 0, "raid_act2.png": 1, "raid_act3.png": 2, "raid_act4.png": 3}
             i = act_idx.get(self._raid_act, 0)
             ay = self._ry + self._rh * (28 + i * 13) // 100
             self._tap((self._rx + self._rw * 49 // 100, ay), times=2, gap=100)
-            time.sleep(0.6)
+            time.sleep(0.25)
 
     def _pick_sq_story_chap(self):
         si = {"squadron_story1.png": 0, "squadron_story2.png": 1, "squadron_story3.png": 2}
@@ -488,20 +479,20 @@ class GameBot:
         sx = self._rx + self._rw * 320 // 1000
         sy = self._ry + self._rh * (320 + idx * 85) // 1000
         self._tap((sx, sy), times=2, gap=100)
-        time.sleep(0.7)
+        time.sleep(0.3)
 
         ci = {"squadron_ch1.png": 0, "squadron_ch2.png": 1, "squadron_ch3.png": 2, "squadron_ch4.png": 3}
         cidx = ci.get(self._sq_chap, 0)
         cx = self._rx + self._rw * 490 // 1000
         cy = self._ry + self._rh * (305 + cidx * 45) // 1000
         self._tap((cx, cy), times=2, gap=100)
-        time.sleep(0.7)
+        time.sleep(0.3)
 
     def _pick_story_chap(self):
         sx = self._rx + self._rw * 320 // 1000
         sy = self._ry + self._rh * (320 + (self._st_idx - 1) * 85) // 1000
         self._tap((sx, sy), times=2, gap=100)
-        time.sleep(0.7)
+        time.sleep(0.3)
 
         cx = self._rx + self._rw * 490 // 1000
         if self._st_chap >= 8:
@@ -511,9 +502,9 @@ class GameBot:
             cy = self._ry + self._rh * (327 + (self._st_chap - 1) * 45) // 1000
         from core.mouse import move_to
         move_to(cx, cy)
-        time.sleep(0.2)
-        self._tap((cx, cy), times=2, gap=200)
-        time.sleep(0.7)
+        time.sleep(0.1)
+        self._tap((cx, cy), times=2, gap=150)
+        time.sleep(0.3)
 
     def _pick_aizen(self):
         x1 = self._rx + self._rw * 20 // 100
@@ -526,7 +517,7 @@ class GameBot:
         else:
             self._tap((self._rx + self._rw * 30 // 100,
                         self._ry + self._rh * 65 // 100), times=2, gap=100)
-        time.sleep(0.8)
+        time.sleep(0.3)
 
     def _pick_regular_challenge(self):
         x1 = self._rx + self._rw * 20 // 100
@@ -540,7 +531,7 @@ class GameBot:
             rx = self._rx + self._rw * 333 // 1000
             ry = self._ry + self._rh * 440 // 1000 - 8
             self._tap((rx, ry), times=2, gap=100, jitter=False)
-        time.sleep(0.8)
+        time.sleep(0.3)
 
     def _pick_difficulty(self):
         diff_file = {
@@ -590,38 +581,39 @@ class GameBot:
                 if fpos:
                     self._tap((fpos[0] + 166, fpos[1] + 5), times=2, gap=80)
                 else:
-                    self._tap((self._rx + self._rw * 650 // 1000,
-                               self._ry + self._rh * 675 // 1000), times=2, gap=80)
+                    time.sleep(0.5)
 
-            found = self._spot("start_btn.png", timeout=1.2)
+            found = self._spot("start_btn.png", timeout=1.5)
             if found:
                 return
 
     def _click_start(self):
         self._phase = "starting"
         self._push()
+        miss_count = 0
 
         for _ in range(10):
             if self._halt.is_set():
                 return
 
-            for img in ("victory_banner.png", "defeat_banner.png", "retry_btn.png"):
-                if self._see(img, th=0.55 if "banner" in img else None):
-                    return
+            if self._see("replay_btn.png") or self._see("retry_btn.png"):
+                return
 
             pos = self._see("start_btn.png")
             if pos:
+                miss_count = 0
                 self._tap(pos, times=2, gap=60)
                 found = self._spot(*BATTLE_ACTIVE_IMGS, timeout=2.0)
                 if found:
                     return
             else:
-                sb_x = self._rx + self._rw * 777 // 1000
-                sb_y = self._ry + self._rh * 708 // 1000
-                self._tap((sb_x, sb_y), times=2, gap=80)
-                found = self._spot(*BATTLE_ACTIVE_IMGS, timeout=1.5)
-                if found:
+                miss_count += 1
+                self.log.log(f"Start: can't find start button ({miss_count}/5)")
+                if miss_count >= 5:
+                    self.log.log("Start: start button not found, rejoining game")
+                    self.rejoin()
                     return
+                time.sleep(0.5)
 
             if self._see("shop_icon.png"):
                 return
@@ -645,23 +637,11 @@ class GameBot:
             if self._handle_disconnect():
                 return "unknown"
 
-            vic = self._see("victory_banner.png", th=0.55)
-            if vic:
+            if self._see("replay_btn.png") or self._see("retry_btn.png"):
                 self._battle_ms = int((time.monotonic() - self._battle_start) * 1000)
-                return "victory"
-
-            dft = self._see("defeat_banner.png", th=0.55)
-            if dft:
-                self._battle_ms = int((time.monotonic() - self._battle_start) * 1000)
-                return "defeat"
-
-            if self._see("retry_btn.png"):
-                self._battle_ms = int((time.monotonic() - self._battle_start) * 1000)
-                return "defeat"
-
-            if self._see("replay_btn.png"):
-                self._battle_ms = int((time.monotonic() - self._battle_start) * 1000)
-                return "unknown"
+                result = self.vision.detect_result_color(
+                    self._rx, self._ry, self._rw, self._rh)
+                return result or "defeat"
 
             if self._see("shop_icon.png"):
                 return "unknown"

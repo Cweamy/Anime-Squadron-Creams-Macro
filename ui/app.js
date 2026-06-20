@@ -29,8 +29,15 @@ window.addEventListener('pywebviewready', async () => {
   } catch (e) {}
 
   try { checkForUpdate(); } catch (e) {}
+  try { await refreshLoadouts(); } catch (e) {}
 
   setInterval(pollStatus, 250);
+  setInterval(autoSaveQueue, 10000);
+
+  document.getElementById('txtLoadoutName').addEventListener('keydown', e => {
+    if (e.key === 'Enter') confirmSaveLoadout();
+    if (e.key === 'Escape') cancelSaveLoadout();
+  });
 });
 
 // ── Status ──
@@ -169,22 +176,30 @@ function addTask(preset) {
     </div>
   `;
   document.getElementById('taskList').appendChild(div);
-  onTaskModeChange(id);
-  if (preset) {
-    if (preset.map && preset.map !== '-') div.querySelector('.tMap').value = preset.map;
-    onTaskMapChange(id);
-    if (preset.act && preset.act !== '-') div.querySelector('.tAct').value = preset.act;
+  onTaskModeChange(id, preset);
+}
+
+function applyPreset(id, preset) {
+  if (!preset) return;
+  const card = document.getElementById('task_' + id);
+  if (!card) return;
+  if (preset.map && preset.map !== '-') {
+    card.querySelector('.tMap').value = preset.map;
+  }
+  onTaskMapChange(id);
+  if (preset.act && preset.act !== '-') {
+    card.querySelector('.tAct').value = preset.act;
   }
 }
 
-function onTaskModeChange(id) {
+function onTaskModeChange(id, preset) {
   const card = document.getElementById('task_' + id);
   if (!card) return;
   const mode = card.querySelector('.tMode').value;
   const mapSel = card.querySelector('.tMap');
   const actSel = card.querySelector('.tAct');
   const diffSel = card.querySelector('.tDiff');
-  mapSel.innerHTML = ''; actSel.innerHTML = '';
+  mapSel.onchange = null;
 
   if (mode === 'Raid') {
     mapSel.innerHTML = '<option>-</option>'; mapSel.disabled = true;
@@ -193,7 +208,7 @@ function onTaskModeChange(id) {
   } else if (mode === 'Squadron' || mode === 'Story') {
     mapSel.innerHTML = '<option>GT City</option><option>Marine Lobby</option><option>Ninja Village</option>';
     mapSel.disabled = false; mapSel.onchange = () => onTaskMapChange(id);
-    diffSel.disabled = false; onTaskMapChange(id);
+    diffSel.disabled = false;
   } else if (mode === 'Aizen') {
     mapSel.innerHTML = '<option>-</option>'; mapSel.disabled = true;
     actSel.innerHTML = '<option>-</option>'; actSel.disabled = true;
@@ -203,12 +218,19 @@ function onTaskModeChange(id) {
     actSel.innerHTML = '<option>-</option>'; actSel.disabled = true;
     diffSel.disabled = true;
   }
+
+  if (preset) {
+    applyPreset(id, preset);
+  } else if (mode === 'Squadron' || mode === 'Story') {
+    onTaskMapChange(id);
+  }
 }
 
 function onTaskMapChange(id) {
   const card = document.getElementById('task_' + id);
   if (!card) return;
   const mode = card.querySelector('.tMode').value;
+  if (mode !== 'Squadron' && mode !== 'Story') return;
   const story = card.querySelector('.tMap').value;
   const actSel = card.querySelector('.tAct');
   actSel.innerHTML = '';
@@ -226,7 +248,14 @@ function moveTask(id, dir) {
   if (dir===-1 && el.previousElementSibling) list.insertBefore(el, el.previousElementSibling);
   if (dir===1 && el.nextElementSibling) list.insertBefore(el.nextElementSibling, el);
 }
-function clearQueue() { document.getElementById('taskList').innerHTML=''; }
+function clearQueue(keepLoadout) {
+  document.getElementById('taskList').innerHTML = '';
+  taskIdCounter = 0;
+  if (!keepLoadout) {
+    document.getElementById('selLoadout').value = '';
+    updateDeleteBtn();
+  }
+}
 
 function getQueueTasks() {
   const tasks = [];
@@ -242,13 +271,169 @@ function getQueueTasks() {
   return tasks;
 }
 
-async function saveQueue() {
-  await api().save_settings_full({
-    webhook_url: document.getElementById('txtWebhook').value.trim(),
-    webhook_enabled: document.getElementById('chkWebhook').checked,
-    webhook_silent: document.getElementById('chkSilent').checked,
-    queue: getQueueTasks(),
-  });
+async function autoSaveQueue() {
+  const tasks = getQueueTasks();
+  try {
+    await api().save_settings_full({
+      webhook_url: document.getElementById('txtWebhook').value.trim(),
+      webhook_enabled: document.getElementById('chkWebhook').checked,
+      webhook_silent: document.getElementById('chkSilent').checked,
+      queue: tasks,
+    });
+    const sel = document.getElementById('selLoadout').value;
+    if (sel.startsWith('user:') && tasks.length > 0) {
+      await api().save_loadout(sel.replace('user:', ''), tasks);
+    }
+  } catch (e) {}
+}
+
+// ── Loadouts ──
+const PRESETS = {
+  "Gold & Trait Farm": {
+    tasks: [
+      { mode: "Squadron", repeat: 999, map: "GT City", act: "Chapter 1", diff: "Normal" },
+    ],
+    settings: { check_challenges: true, loop: true, rewards: ["trait_reroll.png"] },
+  },
+  "Big 3 Secret": {
+    tasks: [
+      { mode: "Story", repeat: 10, map: "GT City", act: "Chapter 10", diff: "Hard" },
+      { mode: "Story", repeat: 10, map: "Marine Lobby", act: "Chapter 10", diff: "Hard" },
+      { mode: "Story", repeat: 10, map: "Ninja Village", act: "Chapter 10", diff: "Hard" },
+    ],
+    settings: { loop: true },
+  },
+};
+
+async function refreshLoadouts() {
+  const sel = document.getElementById('selLoadout');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">-- Loadouts --</option>';
+
+  const newOpt = document.createElement('option');
+  newOpt.value = 'new';
+  newOpt.textContent = '+ New Loadout';
+  sel.appendChild(newOpt);
+
+  const presetGroup = document.createElement('optgroup');
+  presetGroup.label = 'Presets';
+  for (const name of Object.keys(PRESETS)) {
+    const opt = document.createElement('option');
+    opt.value = 'preset:' + name;
+    opt.textContent = name;
+    presetGroup.appendChild(opt);
+  }
+  sel.appendChild(presetGroup);
+
+  try {
+    const loadouts = await api().get_loadouts();
+    const keys = Object.keys(loadouts).sort();
+    if (keys.length > 0) {
+      const userGroup = document.createElement('optgroup');
+      userGroup.label = 'My Loadouts';
+      for (const name of keys) {
+        const opt = document.createElement('option');
+        opt.value = 'user:' + name;
+        opt.textContent = name;
+        userGroup.appendChild(opt);
+      }
+      sel.appendChild(userGroup);
+    }
+    if (prev && prev !== 'new') sel.value = prev;
+  } catch (e) {}
+  updateDeleteBtn();
+}
+
+function updateDeleteBtn() {
+  const val = document.getElementById('selLoadout').value;
+  document.getElementById('btnDelLoadout').style.display = val.startsWith('user:') ? '' : 'none';
+}
+
+function showNameInput() {
+  document.getElementById('loadoutNameRow').style.display = 'flex';
+  const input = document.getElementById('txtLoadoutName');
+  input.value = '';
+  input.focus();
+}
+
+function cancelSaveLoadout() {
+  document.getElementById('loadoutNameRow').style.display = 'none';
+  document.getElementById('selLoadout').value = '';
+}
+
+async function confirmSaveLoadout() {
+  const name = document.getElementById('txtLoadoutName').value.trim();
+  if (!name) return;
+  const tasks = getQueueTasks();
+  if (tasks.length === 0) return;
+  try {
+    await api().save_loadout(name, tasks);
+  } catch (e) { return; }
+  document.getElementById('loadoutNameRow').style.display = 'none';
+  await refreshLoadouts();
+  document.getElementById('selLoadout').value = 'user:' + name;
+  updateDeleteBtn();
+}
+
+function applyPresetSettings(settings) {
+  if (settings.check_challenges !== undefined) {
+    document.getElementById('chkChallenges').checked = settings.check_challenges;
+  }
+  if (settings.loop !== undefined) {
+    document.getElementById('chkStartOver').checked = settings.loop;
+  }
+  if (settings.rewards) {
+    document.querySelectorAll('#rewardList input[type="checkbox"]').forEach(el => {
+      el.checked = settings.rewards.includes(el.id.replace('rwd_', ''));
+    });
+  }
+}
+
+async function onLoadoutSelect() {
+  const sel = document.getElementById('selLoadout');
+  const val = sel.value;
+  updateDeleteBtn();
+
+  if (val === 'new') {
+    showNameInput();
+    return;
+  }
+
+  document.getElementById('loadoutNameRow').style.display = 'none';
+  if (!val) return;
+
+  if (val.startsWith('preset:')) {
+    const name = val.replace('preset:', '');
+    const preset = PRESETS[name];
+    if (!preset) return;
+    clearQueue(true);
+    for (const t of preset.tasks) addTask(t);
+    if (preset.settings) applyPresetSettings(preset.settings);
+    return;
+  }
+
+  if (val.startsWith('user:')) {
+    const name = val.replace('user:', '');
+    try {
+      const loadouts = await api().get_loadouts();
+      const tasks = loadouts[name];
+      if (!tasks) return;
+      clearQueue(true);
+      for (const t of tasks) addTask(t);
+    } catch (e) {}
+  }
+}
+
+async function deleteLoadout() {
+  const sel = document.getElementById('selLoadout');
+  const val = sel.value;
+  if (!val || !val.startsWith('user:')) return;
+  const name = val.replace('user:', '');
+  try {
+    await api().delete_loadout(name);
+  } catch (e) { return; }
+  sel.value = '';
+  await refreshLoadouts();
 }
 
 async function startQueue() {
