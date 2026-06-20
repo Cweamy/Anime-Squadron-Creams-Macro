@@ -30,7 +30,6 @@ cmd = [
     "--add-data", f"{os.path.join(ROOT, 'logo.ico')};.",
     "--hidden-import", "core.asset_data",
     "--noupx",
-    "--strip",
     "--noconfirm",
 ]
 
