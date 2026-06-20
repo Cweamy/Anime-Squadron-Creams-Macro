@@ -10,6 +10,9 @@ try:
 except ImportError:
     _EMBEDDED = {}
 
+MULTISCALE_IMAGES = set()
+SCALES = [1.0, 0.9, 0.8, 0.7, 0.6, 1.1, 1.2, 1.3, 1.4]
+
 
 class Screen:
     """Screen capture (mss) and template matching (cv2) with TransBlack mask support."""
@@ -99,6 +102,47 @@ class Screen:
 
         return None
 
+    def _match_robust(self, screenshot: np.ndarray, template: np.ndarray,
+                       threshold: float, mask: np.ndarray | None = None):
+        gray_ss = cv2.cvtColor(screenshot, cv2.COLOR_BGR2GRAY)
+        gray_tmpl = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
+        edges_ss = cv2.Canny(gray_ss, 50, 150)
+        edges_tmpl = cv2.Canny(gray_tmpl, 50, 150)
+
+        best = None
+        for scale in SCALES:
+            w = int(template.shape[1] * scale)
+            h = int(template.shape[0] * scale)
+            if w < 10 or h < 10 or w > screenshot.shape[1] or h > screenshot.shape[0]:
+                continue
+
+            if scale == 1.0:
+                s_color = template
+                s_gray = gray_tmpl
+                s_edges = edges_tmpl
+            else:
+                interp = cv2.INTER_AREA if scale < 1 else cv2.INTER_LINEAR
+                s_color = cv2.resize(template, (w, h), interpolation=interp)
+                s_gray = cv2.resize(gray_tmpl, (w, h), interpolation=interp)
+                s_edges = cv2.Canny(s_gray, 50, 150)
+
+            for src, tmpl, th in [
+                (screenshot, s_color, threshold),
+                (gray_ss, s_gray, threshold),
+                (edges_ss, s_edges, max(threshold - 0.15, 0.35)),
+            ]:
+                if tmpl.shape[0] > src.shape[0] or tmpl.shape[1] > src.shape[1]:
+                    continue
+                result = cv2.matchTemplate(src, tmpl, cv2.TM_CCOEFF_NORMED)
+                _, max_val, _, max_loc = cv2.minMaxLoc(result)
+                if np.isfinite(max_val) and max_val >= th:
+                    hit = (max_loc[0] + tmpl.shape[1] // 2,
+                           max_loc[1] + tmpl.shape[0] // 2, max_val)
+                    if best is None or hit[2] > best[2]:
+                        best = hit
+
+        return best
+
     def find_in_region(self, img_path: str, rx: int, ry: int, rw: int, rh: int,
                        threshold: float | None = None) -> tuple[int, int] | None:
         template = self._load(img_path)
@@ -109,6 +153,8 @@ class Screen:
             return None
 
         mask = self._mask_cache.get(img_path)
+        use_multiscale = os.path.basename(img_path) in MULTISCALE_IMAGES
+        match_fn = self._match_robust if use_multiscale else self._match
 
         if threshold is not None:
             thresholds = [threshold]
@@ -116,7 +162,7 @@ class Screen:
             thresholds = [IMG_THRESHOLD_STRICT, IMG_THRESHOLD, IMG_THRESHOLD_RELAXED]
 
         for th in thresholds:
-            hit = self._match(screenshot, template, th)
+            hit = match_fn(screenshot, template, th)
             if hit:
                 cx, cy, conf = hit
                 self.logger.log(f"Screen: FOUND {os.path.basename(img_path)} at center "
@@ -124,7 +170,7 @@ class Screen:
                 return rx + cx, ry + cy
 
             if mask is not None:
-                hit = self._match(screenshot, template, th, mask)
+                hit = match_fn(screenshot, template, th, mask)
                 if hit:
                     cx, cy, conf = hit
                     self.logger.log(f"Screen: FOUND {os.path.basename(img_path)} at center "
@@ -144,7 +190,8 @@ class Screen:
             template = self._load(path)
             if template is None:
                 continue
-            hit = self._match(screenshot, template, IMG_THRESHOLD_RELAXED)
+            match_fn = self._match_robust if name in MULTISCALE_IMAGES else self._match
+            hit = match_fn(screenshot, template, IMG_THRESHOLD_RELAXED)
             if hit:
                 cx, cy, conf = hit
                 self.logger.log(f"Screen: FOUND {name} at center "

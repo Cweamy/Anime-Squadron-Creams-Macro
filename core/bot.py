@@ -312,6 +312,7 @@ class GameBot:
         self._phase = "scanning"
         self._push()
         hint = ""
+        unknown_streak = 0
 
         for attempt in range(30):
             if self._halt.is_set():
@@ -319,15 +320,18 @@ class GameBot:
             self._refresh_bounds()
 
             if self._handle_disconnect():
+                unknown_streak = 0
                 continue
 
             scene = self._read_scene(hint)
             hint = ""
 
             if scene == Scene.LOBBY:
+                unknown_streak = 0
                 self._go_through_lobby()
                 hint = "post_lobby"
             elif scene == Scene.PLAY_AREA:
+                unknown_streak = 0
                 self._open_stage_menu()
             elif scene == Scene.STAGE_SELECT:
                 self._select_and_start()
@@ -341,9 +345,18 @@ class GameBot:
                 self._replay_or_retry()
                 return
             elif scene == Scene.DISCONNECTED:
+                unknown_streak = 0
                 self._handle_disconnect()
             else:
-                time.sleep(0.2)
+                unknown_streak += 1
+                if unknown_streak >= 3:
+                    self.log.log("Navigation: unknown screen, pressing Escape to dismiss popup")
+                    import keyboard as kb
+                    kb.press_and_release("escape")
+                    time.sleep(0.5)
+                    unknown_streak = 0
+                else:
+                    time.sleep(0.3)
 
     def _go_through_lobby(self):
         self._phase = "lobby"
