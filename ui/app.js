@@ -285,11 +285,11 @@ function onTaskModeChange(id, preset) {
   mapSel.onchange = null;
 
   if (mode === 'Raid') {
-    mapSel.innerHTML = '<option>-</option>'; mapSel.disabled = true;
-    actSel.innerHTML = '<option>Hidden Danger</option><option>Saiyan Hunt</option><option>Ruler Dragon</option><option>The Ultimate Evil</option>';
-    actSel.disabled = false; diffSel.disabled = false;
+    mapSel.innerHTML = '<option>GT</option><option>Eclipse</option>';
+    mapSel.disabled = false; mapSel.onchange = () => onTaskMapChange(id);
+    diffSel.disabled = false;
   } else if (mode === 'Squadron' || mode === 'Story') {
-    mapSel.innerHTML = '<option>GT City</option><option>Marine Lobby</option><option>Ninja Village</option>';
+    mapSel.innerHTML = '<option>GT City</option><option>Marine Lobby</option><option>Ninja Village</option><option>Eclipse</option>';
     mapSel.disabled = false; mapSel.onchange = () => onTaskMapChange(id);
     diffSel.disabled = false;
   } else if (mode === 'Aizen') {
@@ -304,23 +304,34 @@ function onTaskModeChange(id, preset) {
 
   if (preset) {
     applyPreset(id, preset);
-  } else if (mode === 'Squadron' || mode === 'Story') {
+  } else if (mode === 'Raid' || mode === 'Squadron' || mode === 'Story') {
     onTaskMapChange(id);
   }
 }
+
+const RAID_ACTS = {
+  'GT': ['Hidden Danger', 'Saiyan Hunt', 'Ruler Dragon', 'The Ultimate Evil'],
+  'Eclipse': ['Golden Age', 'Golden Age 2', 'Golden Age 3', 'The Eclipse'],
+};
 
 function onTaskMapChange(id) {
   const card = document.getElementById('task_' + id);
   if (!card) return;
   const mode = card.querySelector('.tMode').value;
-  if (mode !== 'Squadron' && mode !== 'Story') return;
-  const story = card.querySelector('.tMap').value;
+  const map = card.querySelector('.tMap').value;
   const actSel = card.querySelector('.tAct');
   actSel.innerHTML = '';
-  let max = 3;
-  if (mode === 'Story') max = 10;
-  else if (story === 'Ninja Village') max = 4;
-  for (let i = 1; i <= max; i++) actSel.innerHTML += `<option>Chapter ${i}</option>`;
+
+  if (mode === 'Raid') {
+    const acts = RAID_ACTS[map] || RAID_ACTS['GT'];
+    for (const a of acts) actSel.innerHTML += `<option>${a}</option>`;
+    actSel.disabled = false;
+  } else if (mode === 'Squadron' || mode === 'Story') {
+    let max = 3;
+    if (mode === 'Story') max = 10;
+    else if (map === 'Ninja Village' || map === 'Eclipse') max = 4;
+    for (let i = 1; i <= max; i++) actSel.innerHTML += `<option>Chapter ${i}</option>`;
+  }
 }
 
 function removeTask(id) { const el = document.getElementById('task_'+id); if (el) el.remove(); }

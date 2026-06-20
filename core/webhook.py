@@ -7,8 +7,7 @@ from datetime import datetime, timezone
 import requests
 from core.screen import Screen
 from core.constants import SCRIPT_DIR
-
-VERSION = "1.0.0"
+from core.version import VERSION
 LOGO_URL = None
 
 TITLES = {

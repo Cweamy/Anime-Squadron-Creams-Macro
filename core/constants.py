@@ -24,17 +24,31 @@ IMG_THRESHOLD_RELAXED = 0.70
 MAX_STATE_RETRIES = 20
 REFRESH_INTERVAL_MS = 1800000  # 30 minutes
 
-RAID_ACT_MAP = {
-    "Hidden Danger": "raid/hidden_danger.png",
-    "Saiyan Hunt": "raid/saiyan_hunt.png",
-    "Ruler Dragon": "raid/ruler_dragon.png",
-    "The Ultimate Evil": "raid/ultimate_evil.png",
+RAID_MAP = {
+    "GT": "raid/gt.png",
+    "Eclipse": "raid/eclipse.png",
+}
+
+RAID_ACT_BY_MAP = {
+    "GT": {
+        "Hidden Danger": "raid/hidden_danger.png",
+        "Saiyan Hunt": "raid/saiyan_hunt.png",
+        "Ruler Dragon": "raid/ruler_dragon.png",
+        "The Ultimate Evil": "raid/ultimate_evil.png",
+    },
+    "Eclipse": {
+        "Golden Age": "raid/golden_age.png",
+        "Golden Age 2": "raid/golden_age_2.png",
+        "Golden Age 3": "raid/golden_age_3.png",
+        "The Eclipse": "raid/the_eclipse.png",
+    },
 }
 
 SQUAD_STORY_MAP = {
     "GT City": "squadron/gt_city.png",
     "Marine Lobby": "squadron/marine_lobby.png",
     "Ninja Village": "squadron/ninja_village.png",
+    "Eclipse": "squadron/eclipse.png",
 }
 
 SQUAD_CHAP_MAP = {
@@ -44,4 +58,7 @@ SQUAD_CHAP_MAP = {
     "Chapter 4": "squadron/chapter4.png",
 }
 
-STORY_INDEX_MAP = {"GT City": 1, "Marine Lobby": 2, "Ninja Village": 3}
+STORY_INDEX_MAP = {
+    "GT City": 1, "Marine Lobby": 2, "Ninja Village": 3,
+    "Eclipse": 4,
+}

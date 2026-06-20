@@ -13,7 +13,7 @@ from enum import Enum
 
 from core.constants import (
     FIXED_WIN_W, FIXED_WIN_H, PLACE_ID,
-    RAID_ACT_MAP, SQUAD_STORY_MAP, SQUAD_CHAP_MAP, STORY_INDEX_MAP,
+    RAID_MAP, RAID_ACT_BY_MAP, SQUAD_STORY_MAP, SQUAD_CHAP_MAP, STORY_INDEX_MAP,
 )
 from core.screen import Screen
 from core.mouse import Mouse
@@ -103,6 +103,7 @@ class GameBot:
         self._mode = ""
         self._detail = ""
         self._diff = ""
+        self._raid_map_img = ""
         self._raid_act = ""
         self._raid_diff = ""
         self._sq_story = ""
@@ -317,62 +318,45 @@ class GameBot:
             if self._halt.is_set():
                 return
             self._refresh_bounds()
+            self.log.log(f"Nav [{attempt+1}/30]: bounds=({self._rx},{self._ry},{self._rw},{self._rh}) hint={hint}")
 
             if self._handle_disconnect():
                 continue
 
             scene = self._read_scene(hint)
+            self.log.log(f"Nav [{attempt+1}/30]: scene={scene.name}")
             hint = ""
 
             if scene == Scene.LOBBY:
-                self._go_through_lobby()
+                self.log.log("Nav: → go_through_lobby")
+                self._go_through_lobby_safe()
                 hint = "post_lobby"
             elif scene == Scene.PLAY_AREA:
+                self.log.log("Nav: → open_stage_menu")
                 self._open_stage_menu()
             elif scene == Scene.STAGE_SELECT:
+                self.log.log("Nav: → select_and_start")
                 self._select_and_start()
                 return
             elif scene == Scene.IN_ROOM:
+                self.log.log("Nav: → click_start")
                 self._click_start()
                 return
             elif scene == Scene.BATTLING:
+                self.log.log("Nav: → already in battle")
                 return
             elif scene == Scene.RESULTS:
+                self.log.log("Nav: → replay_or_retry")
                 self._replay_or_retry()
                 return
             elif scene == Scene.DISCONNECTED:
+                self.log.log("Nav: → handle_disconnect")
                 self._handle_disconnect()
             else:
-                self.log.log(f"Navigation: unknown screen (attempt {attempt + 1}/30)")
+                self.log.log(f"Nav [{attempt+1}/30]: UNKNOWN - no images matched")
                 time.sleep(0.3)
 
-    def _go_through_lobby(self):
-        self._phase = "lobby"
-        self._push()
 
-        pos = self._see("lobby/play.png")
-        if pos:
-            self._tap(pos, times=3, gap=60)
-        else:
-            shop = self._see("lobby/shop_icon.png")
-            if shop:
-                self._tap((shop[0], shop[1] + 130), times=3, gap=60)
-
-        cr_x = self._rx + self._rw * 48 // 100
-        cr_y = self._ry + self._rh * 79 // 100
-
-        deadline = time.monotonic() + 10.0
-        while time.monotonic() < deadline:
-            if self._halt.is_set():
-                return
-
-            hit = self.vision.find_first(list(STAGE_TABS), self._rx, self._ry, self._rw, self._rh)
-            if hit:
-                self._select_and_start()
-                return
-
-            self._tap((cr_x, cr_y), times=1, gap=30, jitter=False)
-            time.sleep(0.12)
 
     def _open_stage_menu(self):
         self._phase = "opening_menu"
@@ -383,11 +367,9 @@ class GameBot:
                 return
             pos = self._see("lobby/create_room.png")
             if pos:
-                self._tap(pos, times=2, gap=80)
+                self._tap(pos, times=2, gap=80, jitter=False)
             else:
-                cx = self._rx + self._rw * 48 // 100
-                cy = self._ry + self._rh * 79 // 100
-                self._tap((cx, cy), times=2, gap=80, jitter=False)
+                time.sleep(0.5)
 
             found = self._spot(*STAGE_TABS, timeout=1.5)
             if found:
@@ -415,7 +397,7 @@ class GameBot:
         target = tab_map.get(self._mode, "tabs/challenge.png")
         confirm_map = {
             "tabs/challenge.png": lambda: self._see("challenge/panel_header.png") or self._see("challenge/regular.png"),
-            "tabs/raid.png": lambda: any(self._see(img) for img in ("raid/hidden_danger.png", "raid/saiyan_hunt.png", "raid/ruler_dragon.png", "raid/ultimate_evil.png")),
+            "tabs/raid.png": lambda: any(self._see(img) for acts in RAID_ACT_BY_MAP.values() for img in acts.values()),
             "tabs/squadron.png": lambda: self._see("squadron/panel_header.png"),
             "tabs/story.png": lambda: self._see("story/panel_header.png"),
         }
@@ -460,15 +442,24 @@ class GameBot:
 
     def _pick_raid_act(self):
         for _ in range(5):
-            if self._see(self._raid_act):
-                self._tap(self._see(self._raid_act), times=2, gap=100)
+            if self._halt.is_set():
+                return
+            pos = self._see(self._raid_map_img)
+            if pos:
+                self._tap(pos, times=2, gap=100)
+                time.sleep(0.5)
+                break
+            time.sleep(0.3)
+
+        for _ in range(5):
+            if self._halt.is_set():
+                return
+            pos = self._see(self._raid_act)
+            if pos:
+                self._tap(pos, times=2, gap=100)
                 time.sleep(0.25)
                 return
-            act_idx = {"raid/hidden_danger.png": 0, "raid/saiyan_hunt.png": 1, "raid/ruler_dragon.png": 2, "raid/ultimate_evil.png": 3}
-            i = act_idx.get(self._raid_act, 0)
-            ay = self._ry + self._rh * (28 + i * 13) // 100
-            self._tap((self._rx + self._rw * 49 // 100, ay), times=2, gap=100)
-            time.sleep(0.25)
+            time.sleep(0.3)
 
     def _pick_sq_story_chap(self):
         si = {"squadron/gt_city.png": 0, "squadron/marine_lobby.png": 1, "squadron/ninja_village.png": 2}
@@ -578,7 +569,7 @@ class GameBot:
 
             pos = self._see("room/create_room.png")
             if pos:
-                self._tap(pos, times=2, gap=80)
+                self._tap(pos, times=2, gap=80, jitter=False)
             else:
                 time.sleep(0.5)
 
@@ -600,7 +591,7 @@ class GameBot:
 
             pos = self._see("room/start.png")
             if pos:
-                self._tap(pos, times=2, gap=60)
+                self._tap(pos, times=2, gap=60, jitter=False)
                 time.sleep(1.0)
                 return
             else:
@@ -661,7 +652,7 @@ class GameBot:
         for _ in range(8):
             pos = self._see("results/retry.png")
             if pos:
-                self._tap(pos, times=2, gap=60)
+                self._tap(pos, times=2, gap=60, jitter=False)
                 time.sleep(1.0)
                 if not self._see("results/retry.png"):
                     return
@@ -669,7 +660,7 @@ class GameBot:
 
             pos = self._see("results/replay.png")
             if pos:
-                self._tap(pos, times=2, gap=60)
+                self._tap(pos, times=2, gap=60, jitter=False)
                 time.sleep(0.5)
                 return
 
@@ -722,7 +713,7 @@ class GameBot:
             if scene == Scene.STAGE_SELECT:
                 return
             elif scene == Scene.LOBBY:
-                self._go_through_lobby_only()
+                self._go_through_lobby_safe()
             elif scene == Scene.PLAY_AREA:
                 self._open_stage_menu()
             elif scene == Scene.IN_ROOM or scene == Scene.BATTLING or scene == Scene.RESULTS:
@@ -730,7 +721,7 @@ class GameBot:
             else:
                 time.sleep(0.3)
 
-    def _go_through_lobby_only(self):
+    def _go_through_lobby_safe(self):
         self._phase = "lobby"
         self._push()
         pos = self._see("lobby/play.png")
@@ -788,7 +779,7 @@ class GameBot:
         for _ in range(20):
             scene = self._read_scene()
             if scene == Scene.LOBBY:
-                self._go_through_lobby()
+                self._go_through_lobby_safe()
                 break
             elif scene == Scene.STAGE_SELECT:
                 break
@@ -931,6 +922,7 @@ class GameBot:
 
     def _tap(self, pos, times=1, gap=50, jitter=True):
         if isinstance(pos, tuple) and len(pos) >= 2:
+            self.log.log(f"CLICK: ({pos[0]},{pos[1]}) x{times} phase={self._phase} jitter={jitter}")
             self.input.click_multiple(pos[0], pos[1], times, gap, jitter)
 
     # ══════════════════════════════════════════════════════════════
@@ -986,10 +978,13 @@ class GameBot:
         self._detail = ""
 
         if self._mode == "Raid":
-            act = t.get("act", "Hidden Danger")
-            self._raid_act = RAID_ACT_MAP.get(act, "raid/hidden_danger.png")
+            raid_map = t.get("map", "GT")
+            act = t.get("act", list(RAID_ACT_BY_MAP.get(raid_map, {}).keys())[0] if raid_map in RAID_ACT_BY_MAP else "Hidden Danger")
+            self._raid_map_img = RAID_MAP.get(raid_map, "raid/gt.png")
+            acts = RAID_ACT_BY_MAP.get(raid_map, {})
+            self._raid_act = acts.get(act, list(acts.values())[0] if acts else "raid/hidden_danger.png")
             self._raid_diff = diff_file
-            self._detail = act
+            self._detail = f"{raid_map} — {act}"
         elif self._mode == "Squadron":
             story = t.get("map", "GT City")
             chap = t.get("act", "Chapter 1")
