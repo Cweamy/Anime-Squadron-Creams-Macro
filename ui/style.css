@@ -214,6 +214,26 @@ fieldset.group legend {
 fieldset.group:hover legend {
   color: var(--blue);
 }
+fieldset.collapsible legend {
+  cursor: pointer;
+  user-select: none;
+}
+fieldset.collapsible legend .chevron {
+  transition: transform .25s cubic-bezier(.4, 0, .2, 1);
+}
+fieldset.collapsed legend .chevron {
+  transform: rotate(-90deg);
+}
+.section-content {
+  overflow: hidden;
+  max-height: 2000px;
+  transition: max-height .3s ease, opacity .25s ease;
+  opacity: 1;
+}
+fieldset.collapsed .section-content {
+  max-height: 0;
+  opacity: 0;
+}
 
 .divider { height: 1px; background: var(--border); margin: 8px 0; }
 

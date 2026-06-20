@@ -18,7 +18,7 @@ from core.logger import Logger
 from core.bot import GameBot
 from core import settings as cfg
 from core.version import VERSION
-from core.updater import check_for_update, download_update, apply_update_and_restart, check_update_async
+from core.updater import check_for_update, download_update, apply_update_and_restart
 
 wm.set_dpi_aware()
 

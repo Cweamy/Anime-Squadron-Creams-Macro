@@ -453,6 +453,10 @@ async function startQueue() {
   await api().start_queue(tasks, cfg);
 }
 
+function toggleSection(legend) {
+  legend.parentElement.classList.toggle('collapsed');
+}
+
 async function stopMacro() { await api().stop_macro(); }
 async function positionRoblox() { await api().position_roblox(); }
 async function launchRoblox() { await api().launch_roblox(); }

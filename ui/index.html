@@ -50,60 +50,64 @@
   </div>
 
   <!-- Task Queue -->
-  <fieldset class="group">
-    <legend>
-      <svg class="icon" viewBox="0 0 24 24" style="vertical-align:-2px;margin-right:4px;width:12px;height:12px"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+  <fieldset class="group collapsible">
+    <legend onclick="toggleSection(this)">
+      <svg class="icon chevron" viewBox="0 0 24 24" style="vertical-align:-2px;margin-right:4px;width:12px;height:12px"><polyline points="6 9 12 15 18 9"/></svg>
       Task Queue
     </legend>
-    <div class="queue-toolbar">
-      <button class="btn btn-sm btn-add" onclick="addTask()">
-        <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px;vertical-align:-1px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Add
-      </button>
-      <button class="btn btn-sm btn-ghost" onclick="clearQueue()">
-        <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px;vertical-align:-1px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-        Clear
-      </button>
-      <label class="toggle">
-        <input type="checkbox" id="chkStartOver">
-        <span class="toggle-track"></span>
-        <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px;vertical-align:-1px;margin-right:-4px"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-        Loop
-      </label>
+    <div class="section-content">
+      <div class="queue-toolbar">
+        <button class="btn btn-sm btn-add" onclick="addTask()">
+          <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px;vertical-align:-1px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add
+        </button>
+        <button class="btn btn-sm btn-ghost" onclick="clearQueue()">
+          <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px;vertical-align:-1px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Clear
+        </button>
+        <label class="toggle">
+          <input type="checkbox" id="chkStartOver">
+          <span class="toggle-track"></span>
+          <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px;vertical-align:-1px;margin-right:-4px"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          Loop
+        </label>
+      </div>
+      <div class="loadout-bar">
+        <select id="selLoadout" onchange="onLoadoutSelect()">
+          <option value="">-- Loadouts --</option>
+        </select>
+        <button id="btnDelLoadout" class="btn btn-sm btn-danger-sm" onclick="deleteLoadout()" title="Delete selected loadout" style="display:none">
+          <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px;vertical-align:-1px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="loadoutNameRow" class="loadout-name-row" style="display:none">
+        <input type="text" id="txtLoadoutName" placeholder="Loadout name..." maxlength="30">
+        <button class="btn btn-sm btn-accent" onclick="confirmSaveLoadout()">
+          <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px;vertical-align:-1px"><polyline points="20 6 9 17 4 12"/></svg>
+        </button>
+        <button class="btn btn-sm btn-ghost" onclick="cancelSaveLoadout()">
+          <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px;vertical-align:-1px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="taskList"></div>
     </div>
-    <div class="loadout-bar">
-      <select id="selLoadout" onchange="onLoadoutSelect()">
-        <option value="">-- Loadouts --</option>
-      </select>
-      <button id="btnDelLoadout" class="btn btn-sm btn-danger-sm" onclick="deleteLoadout()" title="Delete selected loadout" style="display:none">
-        <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px;vertical-align:-1px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div id="loadoutNameRow" class="loadout-name-row" style="display:none">
-      <input type="text" id="txtLoadoutName" placeholder="Loadout name..." maxlength="30">
-      <button class="btn btn-sm btn-accent" onclick="confirmSaveLoadout()">
-        <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px;vertical-align:-1px"><polyline points="20 6 9 17 4 12"/></svg>
-      </button>
-      <button class="btn btn-sm btn-ghost" onclick="cancelSaveLoadout()">
-        <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px;vertical-align:-1px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div id="taskList"></div>
   </fieldset>
 
   <!-- Challenge Rewards -->
-  <fieldset class="group">
-    <legend>
-      <svg class="icon" viewBox="0 0 24 24" style="vertical-align:-2px;margin-right:4px;width:12px;height:12px"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+  <fieldset class="group collapsible">
+    <legend onclick="toggleSection(this)">
+      <svg class="icon chevron" viewBox="0 0 24 24" style="vertical-align:-2px;margin-right:4px;width:12px;height:12px"><polyline points="6 9 12 15 18 9"/></svg>
       Challenge Rewards
     </legend>
-    <label class="toggle">
-      <input type="checkbox" id="chkChallenges">
-      <span class="toggle-track"></span>
-      Auto-check every 30 min
-    </label>
-    <div class="divider"></div>
-    <div id="rewardList"><span class="muted">Loading...</span></div>
+    <div class="section-content">
+      <label class="toggle">
+        <input type="checkbox" id="chkChallenges">
+        <span class="toggle-track"></span>
+        Auto-check every 30 min
+      </label>
+      <div class="divider"></div>
+      <div id="rewardList"><span class="muted">Loading...</span></div>
+    </div>
   </fieldset>
 
   <!-- Discord Webhook -->
