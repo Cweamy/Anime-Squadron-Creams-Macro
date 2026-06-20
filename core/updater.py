@@ -79,7 +79,7 @@ def apply_update_and_restart(new_exe_path: str):
         creationflags=0x08000000,
         close_fds=True,
     )
-    sys.exit(0)
+    os._exit(0)
 
 
 def check_update_async(callback):
