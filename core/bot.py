@@ -590,9 +590,9 @@ class GameBot:
     def _click_start(self):
         self._phase = "starting"
         self._push()
-        miss_count = 0
+        deadline = time.monotonic() + 30
 
-        for _ in range(10):
+        while time.monotonic() < deadline:
             if self._halt.is_set():
                 return
 
@@ -601,22 +601,19 @@ class GameBot:
 
             pos = self._see("start_btn.png")
             if pos:
-                miss_count = 0
+                deadline = time.monotonic() + 30
                 self._tap(pos, times=2, gap=60)
                 found = self._spot(*BATTLE_ACTIVE_IMGS, timeout=2.0)
                 if found:
                     return
             else:
-                miss_count += 1
-                self.log.log(f"Start: can't find start button ({miss_count}/5)")
-                if miss_count >= 5:
-                    self.log.log("Start: start button not found, rejoining game")
-                    self.rejoin()
-                    return
                 time.sleep(0.5)
 
             if self._see("shop_icon.png"):
                 return
+
+        self.log.log("Start: stuck for 30s, rejoining game")
+        self.rejoin()
 
     # ══════════════════════════════════════════════════════════════
     # BATTLE MONITORING
