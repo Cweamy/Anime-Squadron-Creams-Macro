@@ -597,11 +597,9 @@ class GameBot:
 
             pos = self._see("start_btn.png")
             if pos:
-                deadline = time.monotonic() + 30
                 self._tap(pos, times=2, gap=60)
-                found = self._spot(*BATTLE_ACTIVE_IMGS, timeout=2.0)
-                if found:
-                    return
+                time.sleep(1.0)
+                return
             else:
                 time.sleep(0.5)
 
