@@ -374,7 +374,7 @@ class GameBot:
                 self._select_and_start()
                 return
 
-            self._tap((cr_x, cr_y), times=1, gap=30)
+            self._tap((cr_x, cr_y), times=1, gap=30, jitter=False)
             time.sleep(0.12)
 
     def _open_stage_menu(self):
@@ -390,7 +390,7 @@ class GameBot:
             else:
                 cx = self._rx + self._rw * 48 // 100
                 cy = self._ry + self._rh * 79 // 100
-                self._tap((cx, cy), times=2, gap=80)
+                self._tap((cx, cy), times=2, gap=80, jitter=False)
 
             found = self._spot(*STAGE_TABS, timeout=1.5)
             if found:
@@ -679,15 +679,12 @@ class GameBot:
         for _ in range(5):
             pos = self._see("leave_btn.png")
             if pos:
-                self._tap(pos, times=2, gap=80)
+                self._tap(pos, times=2, gap=80, jitter=False)
                 time.sleep(1.0)
                 if not self._see("retry_btn.png") and not self._see("replay_btn.png"):
                     return
             else:
-                lx = self._rx + self._rw * 548 // 1000
-                ly = self._ry + self._rh * 702 // 1000
-                self._tap((lx, ly), times=2, gap=80)
-                time.sleep(1.0)
+                time.sleep(0.5)
 
     # ══════════════════════════════════════════════════════════════
     # CHALLENGE REWARD CHECK

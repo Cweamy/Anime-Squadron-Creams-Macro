@@ -16,6 +16,9 @@ window.addEventListener('pywebviewready', async () => {
     }
     if (s.webhook_enabled === false) document.getElementById('chkWebhook').checked = false;
     if (s.webhook_silent) document.getElementById('chkSilent').checked = true;
+    if (s.loop) document.getElementById('chkStartOver').checked = true;
+    if (s.check_challenges) document.getElementById('chkChallenges').checked = true;
+    if (s.screenshot_mode) document.getElementById('selScreenshot').value = s.screenshot_mode;
     if (s.queue && s.queue.length > 0) {
       for (const t of s.queue) addTask(t);
     }
@@ -40,6 +43,77 @@ window.addEventListener('pywebviewready', async () => {
   });
 });
 
+// ── Scramble Text ──
+let _scrambleAnim = null;
+let _lastState = '';
+const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*';
+
+function scrambleText(el, newText) {
+  if (_scrambleAnim) cancelAnimationFrame(_scrambleAnim);
+  const len = newText.length;
+  let frame = 0;
+  const totalFrames = len * 3;
+
+  function step() {
+    let out = '';
+    for (let i = 0; i < len; i++) {
+      const reveal = frame - i * 2;
+      if (reveal >= 3) {
+        out += newText[i];
+      } else if (reveal >= 0) {
+        out += CHARS[Math.floor(Math.random() * CHARS.length)];
+      } else {
+        out += CHARS[Math.floor(Math.random() * CHARS.length)];
+      }
+    }
+    el.textContent = out;
+    frame++;
+    if (frame <= totalFrames) {
+      _scrambleAnim = requestAnimationFrame(step);
+    } else {
+      el.textContent = newText;
+      _scrambleAnim = null;
+    }
+  }
+  step();
+}
+
+// ── Idle Fun ──
+let _idleFun = null;
+let _idleShowing = false;
+const IDLE_MSGS = [
+  'Made with ♥ by Cweamya',
+  'Happy grinding!',
+  'Press Start when ready',
+  'AFK farming made easy',
+  'Cream\'s Macro v' + '♥',
+];
+
+function startIdleFun() {
+  if (_idleFun) return;
+  function tick() {
+    const delay = (9 + Math.random() * 6) * 1000;
+    _idleFun = setTimeout(() => {
+      if (_lastState !== 'Idle') return;
+      const msg = IDLE_MSGS[Math.floor(Math.random() * IDLE_MSGS.length)];
+      _idleShowing = true;
+      scrambleText(document.getElementById('txtState'), msg);
+      _idleFun = setTimeout(() => {
+        if (_lastState !== 'Idle') return;
+        _idleShowing = false;
+        scrambleText(document.getElementById('txtState'), 'Idle');
+        tick();
+      }, 3000);
+    }, delay);
+  }
+  tick();
+}
+
+function stopIdleFun() {
+  if (_idleFun) { clearTimeout(_idleFun); _idleFun = null; }
+  _idleShowing = false;
+}
+
 // ── Status ──
 async function pollStatus() {
   try {
@@ -57,7 +131,11 @@ async function pollStatus() {
       document.body.classList.remove('docked');
     }
 
-    document.getElementById('txtState').textContent = s.state;
+    if (s.state !== _lastState) {
+      _lastState = s.state;
+      if (!_idleFun) scrambleText(document.getElementById('txtState'), s.state);
+      if (s.state === 'Idle') startIdleFun(); else stopIdleFun();
+    }
     if (s.use_task_queue && s.task_count > 0) {
       document.getElementById('txtStats').textContent =
         `Task ${s.current_task_index}/${s.task_count}  |  Run ${s.task_run_count}/${s.task_run_target}  |  V:${s.victory_count}  D:${s.defeat_count}`;
@@ -278,6 +356,9 @@ async function autoSaveQueue() {
       webhook_url: document.getElementById('txtWebhook').value.trim(),
       webhook_enabled: document.getElementById('chkWebhook').checked,
       webhook_silent: document.getElementById('chkSilent').checked,
+      loop: document.getElementById('chkStartOver').checked,
+      check_challenges: document.getElementById('chkChallenges').checked,
+      screenshot_mode: document.getElementById('selScreenshot').value,
       queue: tasks,
     });
     const sel = document.getElementById('selLoadout').value;

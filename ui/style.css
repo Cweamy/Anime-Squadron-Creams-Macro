@@ -189,6 +189,7 @@ fieldset.group {
   background: var(--bg-card);
   transition: border-color .3s ease, box-shadow .3s ease;
   animation: groupSlideIn .4s ease both;
+  overflow: visible;
 }
 fieldset.group:hover {
   border-color: #30363D80;
@@ -225,7 +226,6 @@ fieldset.collapsed legend .chevron {
   transform: rotate(-90deg);
 }
 .section-content {
-  overflow: hidden;
   max-height: 2000px;
   transition: max-height .3s ease, opacity .25s ease;
   opacity: 1;
@@ -233,9 +233,13 @@ fieldset.collapsed legend .chevron {
 fieldset.collapsed .section-content {
   max-height: 0;
   opacity: 0;
+  overflow: hidden;
 }
 
-.divider { height: 1px; background: var(--border); margin: 8px 0; }
+.divider {
+  height: 1px; margin: 8px 0;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
 
 /* ══ Toggle Switch ══ */
 .toggle {
@@ -283,10 +287,15 @@ fieldset.collapsed .section-content {
   border: 1px solid var(--border);
   border-radius: 6px;
   animation: groupSlideIn .3s ease both;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.loadout-bar:hover {
+  border-color: var(--accent-dim);
+  box-shadow: 0 1px 6px rgba(0,0,0,.15);
 }
 .loadout-bar select {
   flex: 1; font-size: 11px; padding: 4px 6px;
-  background: var(--bg-input);
+  background-color: var(--bg-input);
 }
 .loadout-name-row {
   display: flex; gap: 4px; align-items: center;
@@ -348,7 +357,7 @@ fieldset.collapsed .section-content {
 /* ══ Inputs ══ */
 select, input[type="text"], input[type="number"] {
   font-family: 'Inter', sans-serif;
-  background: var(--bg-input); color: var(--text);
+  background-color: var(--bg-input); color: var(--text);
   border: 1px solid var(--border); border-radius: 5px;
   padding: 6px 8px; font-size: 12px;
   width: 100%; margin-top: 0;
@@ -359,9 +368,39 @@ select:focus, input:focus {
   border-color: var(--blue);
   box-shadow: 0 0 0 2px #58A6FF15;
 }
-select { cursor: pointer; }
+select {
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%238B949E' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 5px center;
+  background-size: 10px 10px;
+  padding-right: 20px;
+  transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+select:hover {
+  border-color: var(--accent-dim);
+  background-color: var(--bg-surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2358A6FF' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+}
+select option {
+  background: var(--bg-card);
+  color: var(--text);
+  padding: 6px 8px;
+}
+select optgroup {
+  background: var(--bg-surface);
+  color: var(--accent-dim);
+  font-weight: 600;
+  font-style: normal;
+}
 
 input[type="number"] { -moz-appearance: textfield; }
+input[type="number"]:hover, input[type="text"]:hover {
+  border-color: var(--accent-dim);
+}
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none; margin: 0;
@@ -412,9 +451,12 @@ label { display: block; margin-top: 4px; font-size: 12px; color: var(--text-dim)
 .screenshot-row {
   display: flex; align-items: center; gap: 8px;
   margin-top: 6px;
+  transition: opacity .2s;
 }
-.screenshot-row select { width: auto; flex: 1; font-size: 11px; padding: 4px 6px; }
-.label-sm { font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+.screenshot-row:hover { opacity: .9; }
+.screenshot-row select { width: auto; flex: 1; font-size: 11px; padding: 4px 6px; background-color: var(--bg-input); }
+.label-sm { font-size: 11px; color: var(--text-dim); white-space: nowrap; transition: color .2s; }
+.label-sm:hover { color: var(--text); }
 
 /* ══ Status ══ */
 .group-status {
@@ -498,7 +540,7 @@ label { display: block; margin-top: 4px; font-size: 12px; color: var(--text-dim)
 }
 .version-label:hover { color: var(--blue); }
 
-.muted  { color: var(--text-muted); font-size: 12px; }
+.muted  { color: var(--text-muted); font-size: 12px; transition: color .2s; }
 .hidden { display: none !important; }
 
 /* ══ Reward checkboxes ══ */

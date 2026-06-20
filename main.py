@@ -35,10 +35,12 @@ def _set_icon(hwnd: int):
     if not os.path.exists(ICO_PATH):
         return
     user32 = ctypes.windll.user32
-    hicon = user32.LoadImageW(0, ICO_PATH, 1, 0, 0, 0x0010)
-    if hicon:
-        user32.SendMessageW(hwnd, 0x0080, 0, hicon)
-        user32.SendMessageW(hwnd, 0x0080, 1, hicon)
+    small = user32.LoadImageW(0, ICO_PATH, 1, 16, 16, 0x0010)
+    big = user32.LoadImageW(0, ICO_PATH, 1, 48, 48, 0x0010)
+    if small:
+        user32.SendMessageW(hwnd, 0x0080, 0, small)
+    if big:
+        user32.SendMessageW(hwnd, 0x0080, 1, big)
 
 
 class Api:
@@ -220,11 +222,13 @@ def main():
     def on_closing():
         api.bot.halt()
         api.bot.undock_game()
+        time.sleep(0.2)
         return True
 
     window.events.shown += on_shown
     window.events.closing += on_closing
     webview.start(debug=False)
+    api.bot.undock_game()
     keyboard.unhook_all()
 
 

@@ -71,6 +71,8 @@ def apply_update_and_restart(new_exe_path: str):
         f.write(f'if exist "{old_exe}" del /f "{old_exe}"\n')
         f.write(f'move /y "{current_exe}" "{old_exe}"\n')
         f.write(f'move /y "{new_exe_path}" "{current_exe}"\n')
+        exe_dir = os.path.dirname(current_exe)
+        f.write(f'cd /d "{exe_dir}"\n')
         f.write(f'start "" "{current_exe}"\n')
         f.write(f'del /f "{old_exe}"\n')
         f.write(f'del "%~f0"\n')
