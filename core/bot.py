@@ -577,11 +577,7 @@ class GameBot:
             if pos:
                 self._tap(pos, times=2, gap=80)
             else:
-                fpos = self._see("friends_only_btn.png")
-                if fpos:
-                    self._tap((fpos[0] + 166, fpos[1] + 5), times=2, gap=80)
-                else:
-                    time.sleep(0.5)
+                time.sleep(0.5)
 
             found = self._spot("start_btn.png", timeout=1.5)
             if found:
