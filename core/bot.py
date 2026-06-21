@@ -149,6 +149,7 @@ class GameBot:
         self._push()
 
     def get_info(self) -> dict:
+        total = self.victories + self.defeats
         return {
             "state": PHASE_LABELS.get(self._phase, self._phase),
             "running": self.active,
@@ -156,6 +157,8 @@ class GameBot:
             "run_count": self.runs,
             "victory_count": self.victories,
             "defeat_count": self.defeats,
+            "win_rate": round(self.victories / total * 100) if total > 0 else 0,
+            "session_s": int(time.monotonic() - self._session_start) if self._session_start and self.active else 0,
             "use_task_queue": True,
             "current_task_index": self._task_idx + 1,
             "task_count": self._task_total,

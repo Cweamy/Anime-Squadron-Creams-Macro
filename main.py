@@ -131,6 +131,9 @@ class Api:
                     result[reward_file] = base64.b64encode(f.read()).decode("ascii")
         return result
 
+    def get_logs(self) -> list:
+        return self.logger.get_recent(20)
+
     def get_version(self) -> str:
         return VERSION
 
@@ -138,6 +141,14 @@ class Api:
         import webbrowser
         from core.version import GITHUB_REPO
         webbrowser.open(f"https://github.com/{GITHUB_REPO}")
+
+    def open_youtube(self):
+        import webbrowser
+        webbrowser.open("https://www.youtube.com/@Cweamya")
+
+    def open_discord(self):
+        import webbrowser
+        webbrowser.open("https://discord.gg/FwU6ppjKNf")
 
     def check_update(self) -> dict:
         result = check_for_update()

@@ -34,13 +34,14 @@ window.addEventListener('pywebviewready', async () => {
 
   try {
     const ver = await api().get_version();
-    document.getElementById('versionLabel').textContent = 'v' + ver;
+    document.getElementById('verBadge').textContent = 'v' + ver;
   } catch (e) {}
 
   try { checkForUpdate(); } catch (e) {}
   try { await refreshLoadouts(); await refreshAppendList(); } catch (e) {}
 
   setInterval(pollStatus, 250);
+  setInterval(pollLogs, 2000);
   setInterval(autoSaveQueue, 10000);
 
   document.getElementById('txtLoadoutName').addEventListener('keydown', e => {
@@ -124,9 +125,19 @@ function stopIdleFun() {
 async function pollStatus() {
   try {
     const s = await api().get_status();
+    const wasRunning = running;
     running = s.running;
-    document.getElementById('btnStart').disabled = running;
-    document.getElementById('btnStop').disabled = !running;
+    const btn = document.getElementById('btnToggle');
+    btn.querySelector('.icon-play').style.display = running ? 'none' : '';
+    btn.querySelector('.icon-stop').style.display = running ? '' : 'none';
+    btn.className = running ? 'btn btn-stop' : 'btn btn-start';
+    const label = btn.querySelector('span');
+    const newText = running ? 'Stop (F2)' : 'Start';
+    if (wasRunning !== running) {
+      scrambleText(label, newText);
+    } else if (label.textContent !== newText) {
+      label.textContent = newText;
+    }
 
     const overlay = document.getElementById('waitingOverlay');
     if (s.roblox_found) {
@@ -142,13 +153,48 @@ async function pollStatus() {
       if (!_idleFun) scrambleText(document.getElementById('txtState'), s.state);
       if (s.state === 'Idle') startIdleFun(); else stopIdleFun();
     }
-    if (s.use_task_queue && s.task_count > 0) {
-      document.getElementById('txtStats').textContent =
-        `Task ${s.current_task_index}/${s.task_count}  |  Run ${s.task_run_count}/${s.task_run_target}  |  V:${s.victory_count}  D:${s.defeat_count}`;
+
+    document.getElementById('statWinRate').textContent = s.win_rate + '%';
+    document.getElementById('statRuns').textContent = s.run_count;
+    document.getElementById('statVD').innerHTML =
+      `<span class="stat-v">${s.victory_count}</span>/<span class="stat-d">${s.defeat_count}</span>`;
+
+    const ss = s.session_s || 0;
+    const hh = Math.floor(ss / 3600);
+    const mm = Math.floor((ss % 3600) / 60);
+    const sec = ss % 60;
+    document.getElementById('statTime').textContent =
+      hh > 0 ? `${hh}:${String(mm).padStart(2,'0')}:${String(sec).padStart(2,'0')}`
+             : `${mm}:${String(sec).padStart(2,'0')}`;
+
+    const pRow = document.getElementById('taskProgressRow');
+    if (s.use_task_queue && s.task_count > 0 && running) {
+      pRow.style.display = '';
+      document.getElementById('taskProgressText').textContent = `Task ${s.current_task_index}/${s.task_count}`;
+      document.getElementById('taskRunText').textContent = `Run ${s.task_run_count}/${s.task_run_target}`;
+      const pct = s.task_run_target > 0 ? Math.min(100, Math.round(s.task_run_count / s.task_run_target * 100)) : 0;
+      document.getElementById('taskProgressFill').style.width = pct + '%';
     } else {
-      document.getElementById('txtStats').textContent =
-        `Runs: ${s.run_count}  |  V: ${s.victory_count}  |  D: ${s.defeat_count}`;
+      pRow.style.display = 'none';
     }
+  } catch (e) {}
+}
+
+// ── Log Viewer ──
+async function pollLogs() {
+  const el = document.getElementById('logViewer');
+  if (!el || el.closest('.collapsed')) return;
+  try {
+    const lines = await api().get_logs();
+    if (!lines || lines.length === 0) {
+      el.innerHTML = '<span class="muted">No logs yet</span>';
+      return;
+    }
+    el.innerHTML = lines.map(l => {
+      const esc = l.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+      return `<div class="log-line">${esc}</div>`;
+    }).join('');
+    el.scrollTop = el.scrollHeight;
   } catch (e) {}
 }
 
@@ -744,6 +790,10 @@ function toggleSection(legend) {
   legend.parentElement.classList.toggle('collapsed');
 }
 
+async function toggleMacro() {
+  if (running) { await api().stop_macro(); }
+  else { await startQueue(); }
+}
 async function stopMacro() { await api().stop_macro(); }
 async function positionRoblox() { await api().position_roblox(); }
 async function launchRoblox() { await api().launch_roblox(); }
