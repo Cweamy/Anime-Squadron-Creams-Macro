@@ -73,6 +73,7 @@ class GameBot:
         self._screenshot_mode = "roblox"
         self._challenge_check = False
         self._challenge_priority = False
+        self._in_challenge = False
         self._reward_files: list[str] = []
         self._loop_queue = False
 
@@ -246,6 +247,13 @@ class GameBot:
 
             if outcome == "priority_challenge":
                 self._do_challenge_check_startup()
+                continue
+
+            if self._in_challenge:
+                self._in_challenge = False
+                self.log.log("Challenge battle done, not counting toward task")
+                self._apply_task(task)
+                self._leave_results()
                 continue
 
             self.runs += 1
@@ -768,6 +776,7 @@ class GameBot:
         found = self._scan_for_desired_reward()
 
         if found:
+            self._in_challenge = True
             self._create_room()
             self._click_start()
         else:
@@ -802,6 +811,7 @@ class GameBot:
         found = self._scan_for_desired_reward()
 
         if found:
+            self._in_challenge = True
             self._create_room()
             self._click_start()
         else:
