@@ -69,6 +69,8 @@ class Api:
         self._topmost = not getattr(self, '_topmost', True)
         if self.bot.gui_hwnd:
             wm.set_always_on_top(self.bot.gui_hwnd, self._topmost)
+        if self._window:
+            self._window._on_top = self._topmost
         return self._topmost
 
     def launch_roblox(self):
@@ -234,7 +236,7 @@ def main():
         x=start_x,
         y=start_y,
         resizable=False,
-        on_top=False,
+        on_top=True,
         text_select=False,
     )
     api.set_window(window)
@@ -244,7 +246,6 @@ def main():
         if gui_hwnd:
             api.bot.gui_hwnd = gui_hwnd
             _set_icon(gui_hwnd)
-            wm.set_always_on_top(gui_hwnd, True)
 
             roblox = wm.find_roblox_window()
             if roblox:
