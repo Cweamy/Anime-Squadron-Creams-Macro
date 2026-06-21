@@ -67,6 +67,18 @@ def send_webhook(url: str, ctx: dict, screen: Screen,
     if not url or not url.startswith("http"):
         return
 
+    tmp = None
+    has_screenshot = False
+    if screenshot_mode != "none":
+        tmp = os.path.join(os.environ.get("TEMP", "."),
+                           f"anime_squadron_{int(time.time() * 1000)}.png")
+        if screenshot_mode == "fullscreen":
+            from core.window import get_screen_size
+            sw, sh = get_screen_size()
+            has_screenshot = screen.capture_to_file(0, 0, sw, sh, tmp)
+        else:
+            has_screenshot = screen.capture_to_file(win_x, win_y, win_w, win_h, tmp)
+
     def _do():
         event = ctx.get("event", "")
         title = TITLES.get(event, f"📋 {event}")
@@ -146,22 +158,9 @@ def send_webhook(url: str, ctx: dict, screen: Screen,
         }
 
         logo_path = os.path.join(SCRIPT_DIR, "logo.png")
-        files_to_send = {}
 
         if os.path.exists(logo_path):
             embed["thumbnail"] = {"url": "attachment://logo.png"}
-
-        tmp = None
-        has_screenshot = False
-        if screenshot_mode != "none":
-            tmp = os.path.join(os.environ.get("TEMP", "."),
-                               f"anime_squadron_{int(time.time() * 1000)}.png")
-            if screenshot_mode == "fullscreen":
-                from core.window import get_screen_size
-                sw, sh = get_screen_size()
-                has_screenshot = screen.capture_to_file(0, 0, sw, sh, tmp)
-            else:
-                has_screenshot = screen.capture_to_file(win_x, win_y, win_w, win_h, tmp)
 
         if has_screenshot and tmp and os.path.exists(tmp):
             embed["image"] = {"url": "attachment://screenshot.png"}
