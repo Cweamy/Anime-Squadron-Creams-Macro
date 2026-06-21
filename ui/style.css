@@ -84,6 +84,15 @@ body.docked { padding-left: 1162px; }
   from { opacity: 0; letter-spacing: 8px; }
   to   { opacity: 1; letter-spacing: 3px; }
 }
+.github-link {
+  display: inline-block;
+  color: var(--text-dim);
+  margin-left: 6px;
+  vertical-align: middle;
+  transition: color .2s ease, transform .2s ease;
+  cursor: pointer;
+}
+.github-link:hover { color: var(--blue); transform: scale(1.15); }
 
 /* ══ Buttons ══ */
 .btn-row {

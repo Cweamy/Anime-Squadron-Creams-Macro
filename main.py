@@ -119,6 +119,11 @@ class Api:
     def get_version(self) -> str:
         return VERSION
 
+    def open_github(self):
+        import webbrowser
+        from core.version import GITHUB_REPO
+        webbrowser.open(f"https://github.com/{GITHUB_REPO}")
+
     def check_update(self) -> dict:
         result = check_for_update()
         return result if result else {}
