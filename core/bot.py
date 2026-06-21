@@ -251,10 +251,12 @@ class GameBot:
 
             if self._in_challenge:
                 if self._time_slot() != self._last_refresh_slot:
-                    self._in_challenge = False
-                    self.log.log("Challenge: time slot changed, returning to task")
-                    self._apply_task(task)
+                    self.log.log("Challenge: time slot changed, checking new rewards")
                     self._leave_results()
+                    self._do_challenge_check_recheck()
+                    if not self._in_challenge:
+                        self.log.log("Challenge: no desired reward in new slot, returning to task")
+                        self._apply_task(task)
                     continue
                 self.log.log("Challenge: replaying (same time slot)")
                 self._replay_or_retry()
@@ -823,6 +825,26 @@ class GameBot:
             self._mode = saved_mode
             self._phase = "returning"
             self._push()
+
+    def _do_challenge_check_recheck(self):
+        self._phase = "challenge_check"
+        self._push()
+        self._last_refresh_slot = self._time_slot()
+        self._sleep(1.0)
+
+        self._navigate_to_stage_screen()
+        self._pick_tab()
+        self._pick_regular_challenge()
+
+        self._sleep(1.5)
+        found = self._scan_for_desired_reward()
+
+        if found:
+            self._in_challenge = True
+            self._create_room()
+            self._click_start()
+        else:
+            self._in_challenge = False
 
     def _scan_for_desired_reward(self) -> bool:
         if not self._reward_files:
