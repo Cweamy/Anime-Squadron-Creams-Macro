@@ -109,6 +109,7 @@ class GameBot:
         self._sq_story = ""
         self._sq_chap = ""
         self._sq_diff = ""
+        self._st_story_img = ""
         self._st_idx = 1
         self._st_chap = 1
         self._st_diff = ""
@@ -462,12 +463,15 @@ class GameBot:
             time.sleep(0.3)
 
     def _pick_sq_story_chap(self):
-        si = {"squadron/gt_city.png": 0, "squadron/marine_lobby.png": 1, "squadron/ninja_village.png": 2}
-        idx = si.get(self._sq_story, 0)
-        sx = self._rx + self._rw * 320 // 1000
-        sy = self._ry + self._rh * (320 + idx * 85) // 1000
-        self._tap((sx, sy), times=2, gap=100)
-        time.sleep(0.3)
+        for _ in range(5):
+            if self._halt.is_set():
+                return
+            pos = self._see(self._sq_story)
+            if pos:
+                self._tap(pos, times=2, gap=100)
+                time.sleep(0.3)
+                break
+            time.sleep(0.3)
 
         ci = {"squadron/chapter1.png": 0, "squadron/chapter2.png": 1, "squadron/chapter3.png": 2, "squadron/chapter4.png": 3}
         cidx = ci.get(self._sq_chap, 0)
@@ -477,10 +481,15 @@ class GameBot:
         time.sleep(0.3)
 
     def _pick_story_chap(self):
-        sx = self._rx + self._rw * 320 // 1000
-        sy = self._ry + self._rh * (320 + (self._st_idx - 1) * 85) // 1000
-        self._tap((sx, sy), times=2, gap=100)
-        time.sleep(0.3)
+        for _ in range(5):
+            if self._halt.is_set():
+                return
+            pos = self._see(self._st_story_img)
+            if pos:
+                self._tap(pos, times=2, gap=100)
+                time.sleep(0.3)
+                break
+            time.sleep(0.3)
 
         cx = self._rx + self._rw * 490 // 1000
         chap_y = self._ry + self._rh * 400 // 1000
@@ -995,6 +1004,7 @@ class GameBot:
         elif self._mode == "Story":
             story = t.get("map", "GT City")
             chap_str = t.get("act", "Chapter 1")
+            self._st_story_img = SQUAD_STORY_MAP.get(story, "squadron/gt_city.png")
             self._st_idx = STORY_INDEX_MAP.get(story, 1)
             self._st_chap = int(chap_str.replace("Chapter ", "")) if "Chapter" in chap_str else 1
             self._st_diff = diff_file
