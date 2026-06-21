@@ -171,14 +171,46 @@ body.docked { padding-left: 1162px; }
   transition: all .2s ease;
 }
 .btn-remove:hover { background: #F8514920; transform: scale(1.1); }
-.btn-move {
-  background: var(--bg-surface); color: var(--text-dim);
-  border: 1px solid var(--border);
-  padding: 3px 6px; font-size: 11px; border-radius: 4px;
-  cursor: pointer;
-  transition: all .15s ease;
+.drag-handle {
+  color: var(--text-dim);
+  font-size: 14px; line-height: 1;
+  cursor: grab; padding: 2px 4px;
+  border-radius: 4px;
+  transition: color .15s ease, background .15s ease;
+  user-select: none; flex-shrink: 0;
 }
-.btn-move:hover { background: var(--border); transform: scale(1.1); }
+.drag-handle:hover { color: var(--blue); background: #58A6FF15; }
+.drag-handle:active { cursor: grabbing; }
+
+.task-card.dragging {
+  opacity: 0.25;
+  border-style: dashed;
+}
+
+.drag-ghost {
+  position: fixed; z-index: 9999;
+  background: var(--bg-card); color: var(--text);
+  border: 1px solid var(--blue);
+  border-radius: 5px;
+  padding: 6px 12px; font-size: 11px; font-weight: 600;
+  opacity: 0.85;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,.4);
+  white-space: nowrap;
+}
+
+.drop-indicator {
+  height: 2px;
+  background: var(--blue);
+  border-radius: 1px;
+  margin: 2px 0;
+  box-shadow: 0 0 6px #58A6FF60;
+  animation: indicatorPulse .8s ease infinite;
+}
+@keyframes indicatorPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.5; }
+}
 
 /* ══ Fieldsets ══ */
 fieldset.group {
@@ -326,7 +358,7 @@ fieldset.collapsed .section-content {
   transition: all .25s cubic-bezier(.4, 0, .2, 1);
   animation: cardSlideIn .3s ease both;
 }
-.task-card:hover {
+.task-card:hover:not(.dragging) {
   border-color: var(--accent-dim);
   transform: translateX(3px);
   box-shadow: -3px 0 0 var(--blue);
@@ -354,16 +386,13 @@ fieldset.collapsed .section-content {
 .task-row-top .tDiff { width: 0; flex: 2; min-width: 0; }
 .task-row-top .btn-remove { flex-shrink: 0; }
 
-/* Row 2: Map + Act/Chapter + ▲▼ */
+/* Row 2: Map + Act/Chapter + drag handle */
 .task-row-bottom {
   display: flex; gap: 4px; align-items: center;
 }
 .task-row-bottom select { min-width: 0; }
 .task-row-bottom select.tMap  { width: 0; flex: 3; }
 .task-row-bottom select.tAct  { width: 0; flex: 2; }
-.task-row-bottom .actions {
-  display: flex; gap: 2px; flex-shrink: 0;
-}
 
 /* ══ Inputs ══ */
 select, input[type="text"], input[type="number"] {

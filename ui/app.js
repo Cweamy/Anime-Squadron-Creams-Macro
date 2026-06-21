@@ -252,10 +252,7 @@ function addTask(preset) {
     <div class="task-row-bottom">
       <select class="tMap"><option>-</option></select>
       <select class="tAct"><option>-</option></select>
-      <div class="actions">
-        <button class="btn-move" onclick="moveTask(${id},-1)">▲</button>
-        <button class="btn-move" onclick="moveTask(${id},1)">▼</button>
-      </div>
+      <div class="drag-handle" title="Drag to reorder">⠿</div>
     </div>
   `;
   document.getElementById('taskList').appendChild(div);
@@ -336,13 +333,98 @@ function onTaskMapChange(id) {
 }
 
 function removeTask(id) { const el = document.getElementById('task_'+id); if (el) el.remove(); }
-function moveTask(id, dir) {
-  const list = document.getElementById('taskList');
-  const el = document.getElementById('task_'+id);
-  if (!el) return;
-  if (dir===-1 && el.previousElementSibling) list.insertBefore(el, el.previousElementSibling);
-  if (dir===1 && el.nextElementSibling) list.insertBefore(el.nextElementSibling, el);
-}
+
+// ── Drag & Drop ──
+(function() {
+  let dragCard = null;
+  let ghost = null;
+  let indicator = null;
+  let offsetY = 0;
+  let startY = 0;
+
+  function getLabel(card) {
+    const mode = card.querySelector('.tMode')?.value || '?';
+    const map = card.querySelector('.tMap')?.value || '';
+    const act = card.querySelector('.tAct')?.value || '';
+    let s = mode;
+    if (map && map !== '-') s += ' — ' + map;
+    if (act && act !== '-') s += ' ' + act;
+    return s;
+  }
+
+  function getDropTarget(y) {
+    const list = document.getElementById('taskList');
+    const cards = [...list.children].filter(c => c !== dragCard && c.classList.contains('task-card'));
+    for (const c of cards) {
+      const r = c.getBoundingClientRect();
+      if (y < r.top + r.height / 2) return { before: c };
+    }
+    return { before: null };
+  }
+
+  function showIndicator(target) {
+    if (!indicator) {
+      indicator = document.createElement('div');
+      indicator.className = 'drop-indicator';
+    }
+    const list = document.getElementById('taskList');
+    if (target.before) {
+      list.insertBefore(indicator, target.before);
+    } else {
+      list.appendChild(indicator);
+    }
+  }
+
+  document.addEventListener('mousedown', (e) => {
+    const handle = e.target.closest('.drag-handle');
+    if (!handle) return;
+    e.preventDefault();
+    dragCard = handle.closest('.task-card');
+    if (!dragCard) return;
+
+    const rect = dragCard.getBoundingClientRect();
+    offsetY = e.clientY - rect.top;
+    startY = e.clientY;
+
+    ghost = document.createElement('div');
+    ghost.className = 'drag-ghost';
+    ghost.textContent = getLabel(dragCard);
+    document.body.appendChild(ghost);
+    ghost.style.left = rect.left + 'px';
+    ghost.style.top = (e.clientY - 14) + 'px';
+    ghost.style.width = rect.width + 'px';
+
+    dragCard.classList.add('dragging');
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'grabbing';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!dragCard || !ghost) return;
+    ghost.style.top = (e.clientY - 14) + 'px';
+    const target = getDropTarget(e.clientY);
+    showIndicator(target);
+  });
+
+  document.addEventListener('mouseup', (e) => {
+    if (!dragCard) return;
+    const list = document.getElementById('taskList');
+    const target = getDropTarget(e.clientY);
+
+    if (indicator && indicator.parentNode) {
+      list.insertBefore(dragCard, indicator);
+      indicator.remove();
+    }
+
+    dragCard.classList.remove('dragging');
+    if (ghost) ghost.remove();
+    ghost = null;
+    indicator = null;
+    dragCard = null;
+    document.body.style.userSelect = '';
+    document.body.style.cursor = '';
+  });
+})();
 function clearQueue(keepLoadout) {
   document.getElementById('taskList').innerHTML = '';
   taskIdCounter = 0;
@@ -396,9 +478,9 @@ const PRESETS = {
   },
   "Secret Mats": {
     tasks: [
-      { mode: "Story", repeat: 10, map: "GT City", act: "Chapter 10", diff: "Hard" },
-      { mode: "Story", repeat: 10, map: "Marine Lobby", act: "Chapter 10", diff: "Hard" },
-      { mode: "Story", repeat: 10, map: "Ninja Village", act: "Chapter 10", diff: "Hard" },
+      { mode: "Story", repeat: 15, map: "GT City", act: "Chapter 10", diff: "Hard" },
+      { mode: "Story", repeat: 15, map: "Marine Lobby", act: "Chapter 10", diff: "Hard" },
+      { mode: "Story", repeat: 15, map: "Ninja Village", act: "Chapter 10", diff: "Hard" },
     ],
     settings: { loop: true },
   },
