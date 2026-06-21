@@ -197,7 +197,7 @@ class GameBot:
         self._phase = "rejoining"
         self._push()
         self.launch_game()
-        time.sleep(8)
+        self._sleep(8)
         if not self._hwnd or not wm.is_window(self._hwnd):
             self.log.log("Rejoin: window gone, polling for new one")
             if not self._poll_for_game(90):
@@ -355,7 +355,7 @@ class GameBot:
                 self._handle_disconnect()
             else:
                 self.log.log(f"Nav [{attempt+1}/30]: UNKNOWN - no images matched")
-                time.sleep(0.3)
+                self._sleep(0.3)
 
 
 
@@ -370,7 +370,7 @@ class GameBot:
             if pos:
                 self._tap(pos, times=2, gap=80, jitter=False)
             else:
-                time.sleep(0.5)
+                self._sleep(0.5)
 
             found = self._spot(*STAGE_TABS, timeout=1.5)
             if found:
@@ -424,7 +424,7 @@ class GameBot:
                 self._tap((self._rx + self._rw * pct[0] // 1000,
                            self._ry + self._rh * pct[1] // 1000), gap=200)
 
-            time.sleep(0.6)
+            self._sleep(0.6)
 
     def _pick_stage(self):
         self._phase = "picking_stage"
@@ -448,9 +448,9 @@ class GameBot:
             pos = self._see(self._raid_map_img)
             if pos:
                 self._tap(pos, times=2, gap=100)
-                time.sleep(0.5)
+                self._sleep(0.5)
                 break
-            time.sleep(0.3)
+            self._sleep(0.3)
 
         for _ in range(5):
             if self._halt.is_set():
@@ -458,9 +458,9 @@ class GameBot:
             pos = self._see(self._raid_act)
             if pos:
                 self._tap(pos, times=2, gap=100)
-                time.sleep(0.25)
+                self._sleep(0.25)
                 return
-            time.sleep(0.3)
+            self._sleep(0.3)
 
     def _pick_sq_story_chap(self):
         for _ in range(5):
@@ -469,16 +469,16 @@ class GameBot:
             pos = self._see(self._sq_story)
             if pos:
                 self._tap(pos, times=2, gap=100)
-                time.sleep(0.3)
+                self._sleep(0.3)
                 break
-            time.sleep(0.3)
+            self._sleep(0.3)
 
         ci = {"squadron/chapter1.png": 0, "squadron/chapter2.png": 1, "squadron/chapter3.png": 2, "squadron/chapter4.png": 3}
         cidx = ci.get(self._sq_chap, 0)
         cx = self._rx + self._rw * 490 // 1000
         cy = self._ry + self._rh * (305 + cidx * 45) // 1000
         self._tap((cx, cy), times=2, gap=100)
-        time.sleep(0.3)
+        self._sleep(0.3)
 
     def _pick_story_chap(self):
         for _ in range(5):
@@ -487,17 +487,17 @@ class GameBot:
             pos = self._see(self._st_story_img)
             if pos:
                 self._tap(pos, times=2, gap=100)
-                time.sleep(0.3)
+                self._sleep(0.3)
                 break
-            time.sleep(0.3)
+            self._sleep(0.3)
 
         cx = self._rx + self._rw * 490 // 1000
         chap_y = self._ry + self._rh * 400 // 1000
         from core.mouse import move_to
         move_to(cx, chap_y)
-        time.sleep(0.1)
+        self._sleep(0.1)
         self._tap((cx, chap_y), times=1, gap=50, jitter=False)
-        time.sleep(0.15)
+        self._sleep(0.15)
 
         if self._st_chap >= 8:
             self.input.scroll_chapter_list(self._rx, self._ry, self._rw, self._rh)
@@ -505,9 +505,9 @@ class GameBot:
         else:
             cy = self._ry + self._rh * (327 + (self._st_chap - 1) * 45) // 1000
         move_to(cx, cy)
-        time.sleep(0.1)
+        self._sleep(0.1)
         self._tap((cx, cy), times=2, gap=150, jitter=False)
-        time.sleep(0.3)
+        self._sleep(0.3)
 
     def _pick_aizen(self):
         x1 = self._rx + self._rw * 20 // 100
@@ -520,7 +520,7 @@ class GameBot:
         else:
             self._tap((self._rx + self._rw * 30 // 100,
                         self._ry + self._rh * 65 // 100), times=2, gap=100)
-        time.sleep(0.3)
+        self._sleep(0.3)
 
     def _pick_regular_challenge(self):
         x1 = self._rx + self._rw * 20 // 100
@@ -534,7 +534,7 @@ class GameBot:
             rx = self._rx + self._rw * 333 // 1000
             ry = self._ry + self._rh * 440 // 1000 - 8
             self._tap((rx, ry), times=2, gap=100, jitter=False)
-        time.sleep(0.3)
+        self._sleep(0.3)
 
     def _pick_difficulty(self):
         diff_file = {
@@ -554,7 +554,7 @@ class GameBot:
             pos = self._see(diff_file)
             if pos:
                 self._tap(pos, times=2, gap=100)
-                time.sleep(0.5)
+                self._sleep(0.5)
                 return
 
             if self._mode == "Aizen":
@@ -564,7 +564,7 @@ class GameBot:
                 fx = self._rx + self._rw * 713 // 1000
                 fy = self._ry + self._rh * 542 // 1000
             self._tap((fx, fy), times=2, gap=100)
-            time.sleep(0.5)
+            self._sleep(0.5)
 
     def _create_room(self):
         self._phase = "creating_room"
@@ -580,7 +580,7 @@ class GameBot:
             if pos:
                 self._tap(pos, times=2, gap=80, jitter=False)
             else:
-                time.sleep(0.5)
+                self._sleep(0.5)
 
             found = self._spot("room/start.png", timeout=1.5)
             if found:
@@ -601,10 +601,10 @@ class GameBot:
             pos = self._see("room/start.png")
             if pos:
                 self._tap(pos, times=2, gap=60, jitter=False)
-                time.sleep(1.0)
+                self._sleep(1.0)
                 return
             else:
-                time.sleep(0.5)
+                self._sleep(0.5)
 
             if self._see("lobby/shop_icon.png"):
                 return
@@ -642,7 +642,7 @@ class GameBot:
 
             if self._see("battle/team.png"):
                 idle_since = 0
-                time.sleep(0.1)
+                self._sleep(0.1)
                 continue
 
             if idle_since == 0:
@@ -650,7 +650,7 @@ class GameBot:
             if time.monotonic() - idle_since > 60:
                 return "unknown"
 
-            time.sleep(0.1)
+            self._sleep(0.1)
 
         return "unknown"
 
@@ -662,7 +662,7 @@ class GameBot:
             pos = self._see("results/retry.png")
             if pos:
                 self._tap(pos, times=2, gap=60, jitter=False)
-                time.sleep(1.0)
+                self._sleep(1.0)
                 if not self._see("results/retry.png"):
                     return
                 continue
@@ -670,24 +670,24 @@ class GameBot:
             pos = self._see("results/replay.png")
             if pos:
                 self._tap(pos, times=2, gap=60, jitter=False)
-                time.sleep(0.5)
+                self._sleep(0.5)
                 return
 
             if self._see("room/start.png") or self._see("battle/team.png"):
                 return
 
-            time.sleep(0.3)
+            self._sleep(0.3)
 
     def _leave_results(self):
         for _ in range(5):
             pos = self._see("results/leave.png")
             if pos:
                 self._tap(pos, times=2, gap=80, jitter=False)
-                time.sleep(1.0)
+                self._sleep(1.0)
                 if not self._see("results/retry.png") and not self._see("results/replay.png"):
                     return
             else:
-                time.sleep(0.5)
+                self._sleep(0.5)
 
     # ══════════════════════════════════════════════════════════════
     # CHALLENGE REWARD CHECK
@@ -728,7 +728,7 @@ class GameBot:
             elif scene == Scene.IN_ROOM or scene == Scene.BATTLING or scene == Scene.RESULTS:
                 return
             else:
-                time.sleep(0.3)
+                self._sleep(0.3)
 
     def _go_through_lobby_safe(self):
         self._phase = "lobby"
@@ -750,7 +750,7 @@ class GameBot:
             pos = self._see("lobby/create_room.png")
             if pos:
                 self._tap(pos, times=2, gap=80, jitter=False)
-            time.sleep(0.3)
+            self._sleep(0.3)
 
     def _do_challenge_check_startup(self):
         self._phase = "challenge_check"
@@ -765,7 +765,7 @@ class GameBot:
         self._pick_tab()
         self._pick_regular_challenge()
 
-        time.sleep(1.5)
+        self._sleep(1.5)
         found = self._scan_for_desired_reward()
 
         if found:
@@ -783,7 +783,7 @@ class GameBot:
         self._last_refresh_slot = self._time_slot()
 
         self._leave_results()
-        time.sleep(1.0)
+        self._sleep(1.0)
 
         for _ in range(20):
             scene = self._read_scene()
@@ -792,14 +792,14 @@ class GameBot:
                 break
             elif scene == Scene.STAGE_SELECT:
                 break
-            time.sleep(0.3)
+            self._sleep(0.3)
 
         saved_mode = self._mode
         self._mode = "Challenge"
         self._pick_tab()
         self._pick_regular_challenge()
 
-        time.sleep(1.5)
+        self._sleep(1.5)
         found = self._scan_for_desired_reward()
 
         if found:
@@ -835,7 +835,7 @@ class GameBot:
         self.log.log("Disconnect detected")
         self._notify("DISCONNECTED")
         self._tap(pos)
-        time.sleep(3)
+        self._sleep(3)
         if self._see("system/reconnect.png"):
             self.log.log("Reconnect failed — rejoining via deep link")
             self.rejoin()
@@ -847,7 +847,7 @@ class GameBot:
         self._docked = False
         self._hwnd = 0
         self.launch_game()
-        time.sleep(5)
+        self._sleep(5)
         self._poll_for_game(90)
         self._dock_game()
 
@@ -860,10 +860,10 @@ class GameBot:
         if self._docked and self.gui_hwnd:
             if not wm.is_foreground(self.gui_hwnd) and not wm.is_foreground(self._hwnd):
                 wm.activate_window(self.gui_hwnd)
-                time.sleep(0.3)
+                self._sleep(0.3)
         elif not wm.is_foreground(self._hwnd):
             wm.activate_window(self._hwnd)
-            time.sleep(0.3)
+            self._sleep(0.3)
 
     # ══════════════════════════════════════════════════════════════
     # WINDOW MANAGEMENT
@@ -882,13 +882,13 @@ class GameBot:
             return
         if not self._docked and self.gui_hwnd:
             wm.remove_borders(hwnd)
-            time.sleep(0.05)
+            self._sleep(0.05)
             wm.set_parent(hwnd, self.gui_hwnd)
             self._docked = True
-            time.sleep(0.1)
+            self._sleep(0.1)
         wm.move_window(hwnd, 0, 0, FIXED_WIN_W, FIXED_WIN_H)
         wm.bring_to_top(hwnd)
-        time.sleep(0.1)
+        self._sleep(0.1)
         self._refresh_bounds()
 
     def _refresh_bounds(self):
@@ -907,12 +907,15 @@ class GameBot:
             if hwnd:
                 self._hwnd = hwnd
                 return True
-            time.sleep(2)
+            self._sleep(2)
         return False
 
     # ══════════════════════════════════════════════════════════════
     # VISION & INPUT HELPERS
     # ══════════════════════════════════════════════════════════════
+
+    def _sleep(self, seconds: float) -> bool:
+        return self._halt.wait(seconds)
 
     def _see(self, img: str, th=None) -> tuple[int, int] | None:
         return self.vision.find_nav(img, self._rx, self._ry, self._rw, self._rh, th)
@@ -926,7 +929,7 @@ class GameBot:
             hit = self.vision.find_first(list(images), self._rx, self._ry, self._rw, self._rh)
             if hit:
                 return hit
-            time.sleep(0.05)
+            self._sleep(0.05)
         return None
 
     def _tap(self, pos, times=1, gap=50, jitter=True):
