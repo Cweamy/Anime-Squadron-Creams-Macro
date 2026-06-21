@@ -250,10 +250,14 @@ class GameBot:
                 continue
 
             if self._in_challenge:
-                self._in_challenge = False
-                self.log.log("Challenge battle done, not counting toward task")
-                self._apply_task(task)
-                self._leave_results()
+                if self._time_slot() != self._last_refresh_slot:
+                    self._in_challenge = False
+                    self.log.log("Challenge: time slot changed, returning to task")
+                    self._apply_task(task)
+                    self._leave_results()
+                    continue
+                self.log.log("Challenge: replaying (same time slot)")
+                self._replay_or_retry()
                 continue
 
             self.runs += 1
