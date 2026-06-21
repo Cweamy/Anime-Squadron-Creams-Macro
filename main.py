@@ -234,7 +234,7 @@ def main():
         x=start_x,
         y=start_y,
         resizable=False,
-        on_top=True,
+        on_top=False,
         text_select=False,
     )
     api.set_window(window)
@@ -244,6 +244,7 @@ def main():
         if gui_hwnd:
             api.bot.gui_hwnd = gui_hwnd
             _set_icon(gui_hwnd)
+            wm.set_always_on_top(gui_hwnd, True)
 
             roblox = wm.find_roblox_window()
             if roblox:
