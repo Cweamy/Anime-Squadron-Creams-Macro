@@ -72,6 +72,7 @@ class GameBot:
         self._webhook_silent = False
         self._screenshot_mode = "roblox"
         self._challenge_check = False
+        self._challenge_priority = False
         self._reward_files: list[str] = []
         self._loop_queue = False
 
@@ -122,6 +123,7 @@ class GameBot:
         self._webhook_silent = config.get("webhook_silent", False)
         self._screenshot_mode = config.get("screenshot_mode", "roblox")
         self._challenge_check = config.get("check_challenges", False)
+        self._challenge_priority = config.get("challenge_priority", False)
         self._reward_files = config.get("desired_rewards", [])
         self._loop_queue = config.get("start_over", False)
 
@@ -238,6 +240,10 @@ class GameBot:
                 return
 
             outcome = self._watch_battle()
+
+            if outcome == "priority_challenge":
+                self._do_challenge_check_startup()
+                continue
 
             self.runs += 1
             self._task_runs += 1
@@ -614,6 +620,11 @@ class GameBot:
 
             if self._handle_disconnect():
                 return "unknown"
+
+            if self._challenge_priority and self._should_check_rewards():
+                self.log.log("Priority challenge: leaving battle to check rewards")
+                self.rejoin()
+                return "priority_challenge"
 
             if self._see("results/replay.png") or self._see("results/retry.png"):
                 self._battle_ms = int((time.monotonic() - self._battle_start) * 1000)

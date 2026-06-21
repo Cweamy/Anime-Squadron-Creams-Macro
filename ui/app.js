@@ -18,6 +18,7 @@ window.addEventListener('pywebviewready', async () => {
     if (s.webhook_silent) document.getElementById('chkSilent').checked = true;
     if (s.loop) document.getElementById('chkStartOver').checked = true;
     if (s.check_challenges) document.getElementById('chkChallenges').checked = true;
+    if (s.challenge_priority) document.getElementById('chkPriority').checked = true;
     if (s.screenshot_mode) document.getElementById('selScreenshot').value = s.screenshot_mode;
     if (s.desired_rewards && s.desired_rewards.length > 0) {
       document.querySelectorAll('#rewardList input[type="checkbox"]').forEach(el => {
@@ -457,6 +458,7 @@ async function autoSaveQueue() {
       webhook_silent: document.getElementById('chkSilent').checked,
       loop: document.getElementById('chkStartOver').checked,
       check_challenges: document.getElementById('chkChallenges').checked,
+      challenge_priority: document.getElementById('chkPriority').checked,
       screenshot_mode: document.getElementById('selScreenshot').value,
       desired_rewards: getSelectedRewards(),
       queue: tasks,
@@ -719,6 +721,7 @@ async function startQueue() {
     webhook_silent: document.getElementById('chkSilent').checked,
     screenshot_mode: document.getElementById('selScreenshot').value,
     check_challenges: document.getElementById('chkChallenges').checked,
+    challenge_priority: document.getElementById('chkPriority').checked,
     desired_rewards: getSelectedRewards(),
     start_over: document.getElementById('chkStartOver').checked,
   };
