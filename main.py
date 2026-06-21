@@ -117,18 +117,18 @@ class Api:
         return sorted(files)
 
     def get_reward_icons(self) -> dict:
-        import base64
-        icon_dir = os.path.join(SCRIPT_DIR, "assets", "icons")
         icon_map = {
-            "stat_reroll.png": "Stat.png",
-            "trait_reroll.png": "Trait.png",
+            "stat_reroll.png": "Icons/Stat.png",
+            "trait_reroll.png": "Icons/Trait.png",
         }
         result = {}
-        for reward_file, icon_file in icon_map.items():
-            path = os.path.join(icon_dir, icon_file)
-            if os.path.exists(path):
-                with open(path, "rb") as f:
-                    result[reward_file] = base64.b64encode(f.read()).decode("ascii")
+        try:
+            from core.asset_data import ASSETS
+            for reward_file, asset_key in icon_map.items():
+                if asset_key in ASSETS:
+                    result[reward_file] = ASSETS[asset_key]
+        except ImportError:
+            pass
         return result
 
     def get_logs(self) -> list:
