@@ -613,43 +613,54 @@ label { display: block; margin-top: 4px; font-size: 12px; color: var(--text-dim)
 .muted  { color: var(--text-muted); font-size: 12px; transition: color .2s; }
 .hidden { display: none !important; }
 
-/* ══ Reward checkboxes ══ */
-.reward-item {
-  display: flex; align-items: center; gap: 8px; padding: 3px 0;
-  transition: transform .15s;
+/* ══ Challenge Rewards ══ */
+.reward-toggles {
+  display: flex; gap: 12px; margin-bottom: 2px;
 }
-.reward-item:hover { transform: translateX(2px); }
-.reward-item input[type="checkbox"] {
-  appearance: none; -webkit-appearance: none;
-  width: 16px; height: 16px; min-width: 16px;
-  border: 2px solid var(--border); border-radius: 4px;
-  background: transparent; cursor: pointer;
-  position: relative;
+.reward-label {
+  font-size: 10px; font-weight: 600;
+  color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 1px; margin-bottom: 6px;
+}
+.reward-grid {
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+.reward-card {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; padding: 8px 10px;
+  background: var(--bg-input);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
   transition: all .2s cubic-bezier(.4, 0, .2, 1);
+  flex: 1; min-width: 80px;
+  text-align: center;
 }
-.reward-item input[type="checkbox"]:hover {
+.reward-card:hover {
+  border-color: var(--accent-dim);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+.reward-card:has(input:checked) {
   border-color: var(--blue);
-  box-shadow: 0 0 6px #58A6FF20;
+  background: #58A6FF10;
+  box-shadow: 0 0 10px #58A6FF20;
 }
-.reward-item input[type="checkbox"]:checked {
-  background: var(--blue);
-  border-color: var(--blue);
-  animation: checkPop .25s cubic-bezier(.4, 0, .2, 1);
+.reward-card input[type="checkbox"] { display: none; }
+.reward-icon {
+  width: 40px; height: 40px;
+  object-fit: contain;
+  border-radius: 4px;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,.4));
+  transition: transform .2s ease;
 }
-@keyframes checkPop {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(1.2); }
-  100% { transform: scale(1); }
+.reward-card:hover .reward-icon { transform: scale(1.1); }
+.reward-name {
+  font-size: 10px; font-weight: 600;
+  color: var(--text-dim);
+  transition: color .2s;
 }
-.reward-item input[type="checkbox"]:checked::after {
-  content: '✓'; position: absolute;
-  top: -1px; left: 2px;
-  font-size: 11px; color: #fff; font-weight: 700;
-}
-.reward-item label {
-  margin: 0; color: var(--text);
-  cursor: pointer; font-size: 12px; font-weight: 500;
-}
+.reward-card:has(input:checked) .reward-name { color: var(--blue); }
 
 /* ══ Waiting Overlay ══ */
 .waiting-overlay {

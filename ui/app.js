@@ -158,14 +158,25 @@ async function loadRewards() {
   try {
     const files = await api().get_reward_files();
     if (!files || files.length === 0) {
-      el.innerHTML = '<span class="muted">No reward PNGs found</span>';
+      el.innerHTML = '<span class="muted">No rewards found</span>';
       return;
     }
+    let icons = {};
+    try { icons = await api().get_reward_icons(); } catch (e) {}
     el.innerHTML = '';
     for (const f of files) {
       const label = f.replace('.png', '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
       const id = 'rwd_' + f;
-      el.innerHTML += `<div class="reward-item"><input type="checkbox" id="${id}"><label for="${id}">${label}</label></div>`;
+      const b64 = icons[f];
+      const img = b64
+        ? `<img class="reward-icon" src="data:image/png;base64,${b64}" alt="${label}">`
+        : '';
+      el.innerHTML += `
+        <label class="reward-card" for="${id}">
+          <input type="checkbox" id="${id}">
+          ${img}
+          <span class="reward-name">${label}</span>
+        </label>`;
     }
   } catch (e) {
     el.innerHTML = '<span class="muted">Failed to load rewards</span>';

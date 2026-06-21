@@ -108,18 +108,21 @@
       Challenge Rewards
     </legend>
     <div class="section-content">
-      <label class="toggle">
-        <input type="checkbox" id="chkChallenges">
-        <span class="toggle-track"></span>
-        Auto-check every 30 min
-      </label>
-      <label class="toggle">
-        <input type="checkbox" id="chkPriority">
-        <span class="toggle-track"></span>
-        Priority (leave game instantly)
-      </label>
+      <div class="reward-toggles">
+        <label class="toggle">
+          <input type="checkbox" id="chkChallenges">
+          <span class="toggle-track"></span>
+          Enabled
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="chkPriority">
+          <span class="toggle-track"></span>
+          Priority
+        </label>
+      </div>
       <div class="divider"></div>
-      <div id="rewardList"><span class="muted">Loading...</span></div>
+      <div class="reward-label">Desired Rewards</div>
+      <div id="rewardList" class="reward-grid"><span class="muted">Loading...</span></div>
     </div>
   </fieldset>
 

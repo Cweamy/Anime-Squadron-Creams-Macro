@@ -26,6 +26,7 @@ cmd = [
     "--name", "Anime Squadron Creams Macro",
     "--icon", os.path.join(ROOT, "logo.ico"),
     "--add-data", f"{os.path.join(ROOT, 'ui')};ui",
+    "--add-data", f"{os.path.join(ROOT, 'assets', 'icons')};assets/icons",
     "--add-data", f"{os.path.join(ROOT, 'logo.png')};.",
     "--add-data", f"{os.path.join(ROOT, 'logo.ico')};.",
     "--hidden-import", "core.asset_data",

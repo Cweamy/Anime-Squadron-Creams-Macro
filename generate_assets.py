@@ -14,8 +14,12 @@ import glob
 ASSET_DIR = os.path.join(os.path.dirname(__file__), "assets")
 OUTPUT = os.path.join(os.path.dirname(__file__), "core", "asset_data.py")
 
+EXCLUDE = {"icons"}
+
 DIRS = []
 for _d in os.listdir(ASSET_DIR):
+    if _d.lower() in EXCLUDE:
+        continue
     _full = os.path.join(ASSET_DIR, _d)
     if os.path.isdir(_full):
         DIRS.append(_full)

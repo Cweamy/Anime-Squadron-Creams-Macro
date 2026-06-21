@@ -116,6 +116,21 @@ class Api:
             pass
         return sorted(files)
 
+    def get_reward_icons(self) -> dict:
+        import base64
+        icon_dir = os.path.join(SCRIPT_DIR, "assets", "icons")
+        icon_map = {
+            "stat_reroll.png": "Stat.png",
+            "trait_reroll.png": "Trait.png",
+        }
+        result = {}
+        for reward_file, icon_file in icon_map.items():
+            path = os.path.join(icon_dir, icon_file)
+            if os.path.exists(path):
+                with open(path, "rb") as f:
+                    result[reward_file] = base64.b64encode(f.read()).decode("ascii")
+        return result
+
     def get_version(self) -> str:
         return VERSION
 
