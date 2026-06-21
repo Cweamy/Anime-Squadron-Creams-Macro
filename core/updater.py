@@ -65,13 +65,20 @@ def apply_update_and_restart(new_exe_path: str):
     current_exe = sys.executable
     old_exe = current_exe + ".old"
     batch = os.path.join(os.path.dirname(current_exe), "_update.bat")
+    exe_dir = os.path.dirname(current_exe)
+    pid = os.getpid()
     with open(batch, "w") as f:
         f.write("@echo off\n")
-        f.write("timeout /t 5 /nobreak >nul\n")
+        f.write(f':waitloop\n')
+        f.write(f'tasklist /FI "PID eq {pid}" 2>nul | find "{pid}" >nul\n')
+        f.write(f'if not errorlevel 1 (\n')
+        f.write(f'  timeout /t 2 /nobreak >nul\n')
+        f.write(f'  goto waitloop\n')
+        f.write(f')\n')
+        f.write("timeout /t 3 /nobreak >nul\n")
         f.write(f'if exist "{old_exe}" del /f "{old_exe}"\n')
         f.write(f'move /y "{current_exe}" "{old_exe}"\n')
         f.write(f'move /y "{new_exe_path}" "{current_exe}"\n')
-        exe_dir = os.path.dirname(current_exe)
         f.write(f'cd /d "{exe_dir}"\n')
         f.write(f'start "" "{current_exe}"\n')
         f.write(f'del /f "{old_exe}"\n')
