@@ -327,6 +327,7 @@ function onTaskMapChange(id) {
     for (const a of acts) actSel.innerHTML += `<option>${a}</option>`;
     actSel.disabled = false;
   } else if (mode === 'Squadron' || mode === 'Story') {
+    actSel.disabled = false;
     let max = 3;
     if (mode === 'Story') max = 10;
     else if (map === 'Ninja Village' || map === 'Eclipse') max = 4;
