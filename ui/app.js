@@ -796,12 +796,6 @@ async function toggleMacro() {
 }
 async function stopMacro() { await api().stop_macro(); }
 async function positionRoblox() { await api().position_roblox(); }
-async function toggleTopmost() {
-  const on = await api().toggle_topmost();
-  const btn = document.getElementById('btnPin');
-  btn.classList.toggle('btn-pin-active', on);
-  btn.title = on ? 'Always on top (ON)' : 'Always on top (OFF)';
-}
 async function launchRoblox() { await api().launch_roblox(); }
 async function rejoinGame() { await api().rejoin_game(); }
 

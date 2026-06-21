@@ -631,6 +631,7 @@ class GameBot:
 
             if self._see("results/replay.png") or self._see("results/retry.png"):
                 self._battle_ms = int((time.monotonic() - self._battle_start) * 1000)
+                self._sleep(0.3)
                 result = self.vision.detect_result_color(
                     self._rx, self._ry, self._rw, self._rh)
                 return result or "defeat"

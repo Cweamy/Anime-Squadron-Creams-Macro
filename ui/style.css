@@ -168,7 +168,6 @@ body.docked { padding-left: 1162px; }
   padding: 9px 12px; font-size: 14px;
 }
 .btn-icon:hover { border-color: var(--accent-dim); }
-.btn-pin-active { color: var(--blue); border-color: var(--blue); background: #58A6FF15; }
 
 .btn-sm     { padding: 5px 12px; font-size: 11px; font-weight: 600; }
 .btn-add    { background: var(--white); color: #0D1117; }

@@ -65,14 +65,6 @@ class Api:
     def position_roblox(self):
         self.bot.dock_game()
 
-    def toggle_topmost(self) -> bool:
-        self._topmost = not getattr(self, '_topmost', True)
-        if self.bot.gui_hwnd:
-            wm.set_always_on_top(self.bot.gui_hwnd, self._topmost)
-        if self._window:
-            self._window._on_top = self._topmost
-        return self._topmost
-
     def launch_roblox(self):
         self.bot.launch_game()
 
