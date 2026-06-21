@@ -15,6 +15,8 @@ SWP_FRAMECHANGED = 0x0020
 SWP_NOMOVE = 0x0002
 SWP_NOSIZE = 0x0001
 SWP_NOZORDER = 0x0004
+HWND_TOPMOST = -1
+HWND_NOTOPMOST = -2
 HWND_TOP = 0
 PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
 
@@ -138,6 +140,12 @@ def restore_borders(hwnd: int):
 def set_parent(child: int, parent: int):
     """Make child a child window of parent. Pass parent=0 to unparent."""
     user32.SetParent(child, parent)
+
+
+def set_always_on_top(hwnd: int, on: bool = True):
+    flag = HWND_TOPMOST if on else HWND_NOTOPMOST
+    user32.SetWindowPos(hwnd, flag, 0, 0, 0, 0,
+                        SWP_NOMOVE | SWP_NOSIZE)
 
 
 def bring_to_top(hwnd: int):
