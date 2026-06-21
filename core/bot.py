@@ -1,11 +1,3 @@
-"""
-GameBot — automated farming engine for Anime Squadron.
-
-Original sequential architecture: instead of a tick-based state machine,
-the bot runs a blocking task loop where each step waits for its expected
-screen transition before proceeding.
-"""
-
 import os
 import time
 import threading
@@ -13,7 +5,7 @@ from enum import Enum
 
 from core.constants import (
     FIXED_WIN_W, FIXED_WIN_H, PLACE_ID,
-    RAID_MAP, RAID_ACT_BY_MAP, SQUAD_STORY_MAP, SQUAD_CHAP_MAP, STORY_INDEX_MAP,
+    RAID_MAP, RAID_ACT_BY_MAP, SQUAD_STORY_MAP, SQUAD_CHAP_MAP,
 )
 from core.screen import Screen
 from core.mouse import Mouse
@@ -29,10 +21,8 @@ class Scene(Enum):
     STAGE_SELECT = 3
     IN_ROOM = 4
     BATTLING = 5
-    VICTORY = 6
-    DEFEAT = 7
-    RESULTS = 8
-    DISCONNECTED = 9
+    RESULTS = 6
+    DISCONNECTED = 7
 
 
 PHASE_LABELS = {
@@ -110,7 +100,6 @@ class GameBot:
         self._sq_chap = ""
         self._sq_diff = ""
         self._st_story_img = ""
-        self._st_idx = 1
         self._st_chap = 1
         self._st_diff = ""
         self._az_diff = ""
@@ -208,9 +197,6 @@ class GameBot:
         self._phase = "idle"
         self._push()
         return True
-
-    def poll_for_game(self, timeout=120):
-        return self._poll_for_game(timeout)
 
     # ══════════════════════════════════════════════════════════════
     # WORKER — runs in background thread
@@ -356,8 +342,6 @@ class GameBot:
             else:
                 self.log.log(f"Nav [{attempt+1}/30]: UNKNOWN - no images matched")
                 self._sleep(0.3)
-
-
 
     def _open_stage_menu(self):
         self._phase = "opening_menu"
@@ -1008,7 +992,6 @@ class GameBot:
             story = t.get("map", "GT City")
             chap_str = t.get("act", "Chapter 1")
             self._st_story_img = SQUAD_STORY_MAP.get(story, "squadron/gt_city.png")
-            self._st_idx = STORY_INDEX_MAP.get(story, 1)
             self._st_chap = int(chap_str.replace("Chapter ", "")) if "Chapter" in chap_str else 1
             self._st_diff = diff_file
             self._detail = f"{story} Ch.{self._st_chap}"

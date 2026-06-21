@@ -58,7 +58,3 @@ SQUAD_CHAP_MAP = {
     "Chapter 4": "squadron/chapter4.png",
 }
 
-STORY_INDEX_MAP = {
-    "GT City": 1, "Marine Lobby": 2, "Ninja Village": 3,
-    "Eclipse": 4,
-}

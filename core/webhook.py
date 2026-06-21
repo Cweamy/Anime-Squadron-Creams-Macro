@@ -8,8 +8,6 @@ import requests
 from core.screen import Screen
 from core.constants import SCRIPT_DIR
 from core.version import VERSION
-LOGO_URL = None
-
 TITLES = {
     "VICTORY":              "🏆 Run Complete — Victory!",
     "DEFEAT":               "💀 Run Complete — Defeat",
