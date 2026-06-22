@@ -57,6 +57,8 @@ class GameBot:
         self._phase = "idle"
         self._thread: threading.Thread | None = None
         self._halt = threading.Event()
+        self._afk_stop = threading.Event()
+        self._afk_thread: threading.Thread | None = None
 
         # Window
         self._hwnd = 0
@@ -268,7 +270,7 @@ class GameBot:
                 self.victories += 1
             elif outcome == "defeat":
                 self.defeats += 1
-            self._notify(outcome.upper() if outcome != "unknown" else "DEFEAT")
+            self._notify(outcome.upper() if outcome != "unknown" else "STAGE END (Detected)")
 
             if self._task_runs >= self._task_target:
                 self._leave_results()
@@ -945,6 +947,28 @@ class GameBot:
                 return True
             self._sleep(2)
         return False
+
+    # ══════════════════════════════════════════════════════════════
+    # ANTI-AFK
+    # ══════════════════════════════════════════════════════════════
+
+    def start_anti_afk(self):
+        if self._afk_thread and self._afk_thread.is_alive():
+            return
+        self._afk_stop.clear()
+        self._afk_thread = threading.Thread(target=self._afk_loop, daemon=True)
+        self._afk_thread.start()
+
+    def stop_anti_afk(self):
+        self._afk_stop.set()
+
+    def _afk_loop(self):
+        while not self._afk_stop.wait(60):
+            if self.active:
+                continue
+            if self._hwnd and wm.is_window(self._hwnd):
+                wm.activate_window(self._hwnd)
+                wm.press_key(0x20)  # Space
 
     # ══════════════════════════════════════════════════════════════
     # VISION & INPUT HELPERS

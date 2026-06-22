@@ -156,3 +156,17 @@ def bring_to_top(hwnd: int):
 
 def get_screen_size() -> tuple[int, int]:
     return user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+
+
+WM_KEYDOWN = 0x0100
+WM_KEYUP = 0x0101
+
+
+def press_key(vk: int):
+    user32.keybd_event(vk, 0, 0, 0)
+    user32.keybd_event(vk, 0, 0x0002, 0)  # KEYEVENTF_KEYUP
+
+
+def send_key_to_window(hwnd: int, vk: int):
+    user32.PostMessageW(hwnd, WM_KEYDOWN, vk, 0)
+    user32.PostMessageW(hwnd, WM_KEYUP, vk, 0)

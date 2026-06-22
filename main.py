@@ -9,6 +9,10 @@ import time
 import ctypes
 import threading
 
+# Splash screen before heavy imports (cv2/numpy/webview take seconds to load)
+from core.splash import show_async as _show_splash, close as _close_splash
+_splash_thread = _show_splash()
+
 import webview
 import keyboard
 
@@ -234,6 +238,7 @@ def main():
     api.set_window(window)
 
     def on_shown():
+        _close_splash()
         gui_hwnd = _find_gui(GUI_TITLE)
         if gui_hwnd:
             api.bot.gui_hwnd = gui_hwnd
@@ -248,9 +253,11 @@ def main():
             else:
                 api.start_roblox_poll()
 
+        api.bot.start_anti_afk()
         keyboard.add_hotkey("F2", api.bot.halt, suppress=False)
 
     def on_closing():
+        api.bot.stop_anti_afk()
         api.bot.halt()
         api.bot.undock_game()
         time.sleep(0.2)
