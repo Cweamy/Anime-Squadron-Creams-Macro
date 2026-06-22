@@ -261,14 +261,17 @@ def main():
     def on_closing():
         api.bot.stop_anti_afk()
         api.bot.halt()
-        api.bot.undock_game()
-        time.sleep(0.2)
+        if api.bot._hwnd and wm.is_window(api.bot._hwnd):
+            wm.set_parent(api.bot._hwnd, 0)
+            wm.restore_borders(api.bot._hwnd)
+            wm.move_window(api.bot._hwnd, 100, 100, FIXED_WIN_W + 16, FIXED_WIN_H + 39)
+            api.bot._docked = False
+        time.sleep(0.1)
         return True
 
     window.events.shown += on_shown
     window.events.closing += on_closing
     webview.start(debug=False)
-    api.bot.undock_game()
     keyboard.unhook_all()
 
 
