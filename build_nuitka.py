@@ -60,7 +60,6 @@ cmd = [
     "--python-flag=no_asserts",
     "--python-flag=no_docstrings",
     "--lto=no",
-    "--remove-output",
     "--assume-yes-for-downloads",
     f"--output-filename={EXE_NAME}",
     "--output-dir=dist-nuitka",

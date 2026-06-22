@@ -20,6 +20,16 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Cache Nuitka build
+        uses: actions/cache@v4
+        with:
+          path: |
+            dist-nuitka/main.build
+            dist-nuitka/main.dist
+            dist-nuitka/main.onefile-build
+          key: nuitka-${{ runner.os }}-${{ hashFiles('main.py', 'core/*.py', 'build_nuitka.py') }}
+          restore-keys: nuitka-${{ runner.os }}-
+
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
