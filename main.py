@@ -87,7 +87,9 @@ class Api:
         cfg.save(data)
 
     def save_settings_full(self, data: dict):
-        cfg.save(data)
+        existing = cfg.load()
+        existing.update(data)
+        cfg.save(existing)
 
     def get_loadouts(self) -> dict:
         data = cfg.load()
