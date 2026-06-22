@@ -575,6 +575,18 @@ const PRESETS = {
     ],
     settings: { loop: true },
   },
+  "Ultimate Material Farm": {
+    tasks: [
+      { mode: "Story", repeat: 15, map: "Eclipse", act: "Chapter 10", diff: "Hard" },
+      { mode: "Story", repeat: 15, map: "GT City", act: "Chapter 10", diff: "Hard" },
+      { mode: "Story", repeat: 15, map: "Marine Lobby", act: "Chapter 10", diff: "Hard" },
+      { mode: "Story", repeat: 15, map: "Ninja Village", act: "Chapter 10", diff: "Hard" },
+      { mode: "Story", repeat: 10, map: "GT City", act: "Chapter 8", diff: "Hard" },
+      { mode: "Story", repeat: 10, map: "Marine Lobby", act: "Chapter 8", diff: "Hard" },
+      { mode: "Story", repeat: 10, map: "Ninja Village", act: "Chapter 8", diff: "Hard" },
+    ],
+    settings: { loop: true },
+  },
 };
 
 async function refreshLoadouts() {
