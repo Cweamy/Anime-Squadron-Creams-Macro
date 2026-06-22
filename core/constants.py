@@ -1,9 +1,14 @@
 import os
 import sys
 
-if getattr(sys, 'frozen', False):
+if hasattr(sys, '_MEIPASS'):
+    # PyInstaller onefile
     BUNDLE_DIR = sys._MEIPASS
     APP_DIR = os.path.dirname(sys.executable)
+elif getattr(sys, 'frozen', False) or "__compiled__" in dir():
+    # Nuitka standalone/onefile
+    BUNDLE_DIR = os.path.dirname(sys.executable)
+    APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
 else:
     BUNDLE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     APP_DIR = BUNDLE_DIR
