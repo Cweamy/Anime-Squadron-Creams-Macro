@@ -826,9 +826,11 @@ async function doUpdate() {
   document.getElementById('btnUpdate').disabled = true;
   document.getElementById('btnUpdate').textContent = '0%';
   try {
-    await api().do_update(pendingUpdateUrl);
+    const res = await api().do_update(pendingUpdateUrl);
+    if (res && !res.ok) throw new Error('update failed');
   } catch (e) {
-    document.getElementById('btnUpdate').textContent = 'Failed';
+    document.getElementById('btnUpdate').textContent = 'Open GitHub';
     document.getElementById('btnUpdate').disabled = false;
+    document.getElementById('btnUpdate').onclick = () => api().open_github();
   }
 }
