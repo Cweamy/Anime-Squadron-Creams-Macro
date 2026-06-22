@@ -59,7 +59,7 @@ cmd = [
     "--python-flag=no_site",
     "--python-flag=no_asserts",
     "--python-flag=no_docstrings",
-    "--lto=yes",
+    "--lto=no",
     "--remove-output",
     "--assume-yes-for-downloads",
     f"--output-filename={EXE_NAME}",
