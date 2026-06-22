@@ -809,6 +809,10 @@ async function checkForUpdate() {
       pendingUpdateUrl = info.download_url;
       document.getElementById('updateText').textContent = `Update v${info.version} available!`;
       document.getElementById('updateBanner').classList.remove('hidden');
+      const badge = document.getElementById('verBadge');
+      badge.textContent = `v${info.version} available!`;
+      badge.classList.add('ver-badge-update');
+      badge.onclick = () => document.getElementById('updateBanner').scrollIntoView({ behavior: 'smooth' });
     }
   } catch (e) {}
 }

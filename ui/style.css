@@ -93,6 +93,22 @@ body.docked { padding-left: 1162px; }
   border: 1px solid #58A6FF30;
   margin-left: 4px;
   letter-spacing: 0;
+  transition: all .3s ease;
+}
+.ver-badge-update {
+  color: var(--green);
+  background: #3FB95020;
+  border-color: #3FB95050;
+  cursor: pointer;
+  animation: badgePulse 2s ease-in-out infinite;
+}
+.ver-badge-update:hover {
+  background: #3FB95035;
+  transform: scale(1.05);
+}
+@keyframes badgePulse {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  50%      { box-shadow: 0 0 6px #3FB95030; }
 }
 .social-links {
   display: flex; justify-content: center;
