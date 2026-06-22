@@ -291,7 +291,8 @@ class GameBot:
             order = [
                 "lobby/shop_icon.png", "lobby/create_room.png", *STAGE_TABS,
                 "room/start.png", "battle/team.png",
-                "results/replay.png", "results/retry.png", "system/reconnect.png",
+                "results/replay.png", "results/retry.png",
+                "system/reconnect.png", "system/retry.png",
             ]
 
         hit = self.vision.find_first(order, self._rx, self._ry, self._rw, self._rh)
@@ -311,7 +312,7 @@ class GameBot:
             return Scene.BATTLING
         if name in ("results/replay.png", "results/retry.png"):
             return Scene.RESULTS
-        if name == "system/reconnect.png":
+        if name in ("system/reconnect.png", "system/retry.png"):
             return Scene.DISCONNECTED
         return Scene.UNKNOWN
 
@@ -864,14 +865,14 @@ class GameBot:
     # ══════════════════════════════════════════════════════════════
 
     def _handle_disconnect(self) -> bool:
-        pos = self._see("system/reconnect.png")
+        pos = self._see("system/reconnect.png") or self._see("system/retry.png")
         if not pos:
             return False
         self.log.log("Disconnect detected")
         self._notify("DISCONNECTED")
         self._tap(pos)
         self._sleep(3)
-        if self._see("system/reconnect.png"):
+        if self._see("system/reconnect.png") or self._see("system/retry.png"):
             self.log.log("Reconnect failed — rejoining via deep link")
             self.rejoin()
         return True

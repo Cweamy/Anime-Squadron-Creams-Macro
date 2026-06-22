@@ -4550,6 +4550,21 @@ ASSETS = {
         "56kNbD97vKkJLIlBUXExXt/+GsrL9oq+S0kw41xpNiN/9y5U19Qy31r83Nsr+oQq6k9zCk3zeOy0"
         "FSGLEqhC0yiBKjSNEqhC0yiBKjSNEqhC0yiBKjSNEqhCwwB/AQ86R0A+2WhkAAAAAElFTkSuQmCC"
     ),
+    "system/retry.png": (
+        "iVBORw0KGgoAAAANSUhEUgAAADUAAAAUCAMAAAAayIXRAAAAAXNSR0IB2cksfwAAAAlwSFlzAAAO"
+        "xAAADsQBlSsOGwAAAURQTFRF////l5iZIyUnLS8xSktNnp+g/v7+3N3d9fX1MDI08fHxt7e4LzEz"
+        "lZaX0NHRgoOEQkRFw8TFent9Q0VGubq6R0lLKy0vSUtMr6+whIaHJigqxMXFeHp7fn+AqqqrOjw+"
+        "UlRWfoCBREVHTlBRh4iJ7+/vqqusKCosPD5Ax8fI9vb3y8zMNTc5wcHCrK2u9/f3JCYoysrK3t/f"
+        "2dnacnR19vb2/Pz8NDY4uru7jI2OcHFyRUZIX2FikZKTT1FSV1haWFlbvr+/KiwuoaKjzc3OJScp"
+        "2NnZpKSl1tbWJykrZ2lq+vr6MTM1gYKDsbKzn6ChkJGSaWps29vbra6v6+vspaan6urr1tfX9PT0"
+        "8/PzLjAyNzk6vLy9eHl6ODo7TE5QbG5v39/gj5CRs7S0eXp8UFFTiYqLmJmaMzU3vb6/KSstUlNV"
+        "UKw5pAAAASxJREFUeJxjZCAHMA6ILkZGEGZk/AUTYP/N9oOwLo7vDFxAXZ9hAnxfiNTFwMDP+AEm"
+        "IPiRaF1CjG8ZREAOfSHJ+IKBQfKpDCMY3APKKTPewapLFaj6o4QAWN1lvSsgu2SYmVi4bmgynmcw"
+        "umB4FlMXiCkhBdJwgoHBkvEYVJf8aWD42Pw4w2DLeAi7C+1/H2MwPg/m2h2A6mJ5AOQ5Mp74pqS4"
+        "F7suF8aTn9z2qF8HCyDrYuMyZ2S8cxtHaHhde+bKyLgZLOC3heMbTBeD/0UDxvW4wjDohOVatS+v"
+        "FfQZGVeFrw58pLwCqisS6N0lOEM+lvHXCgv1Ez8cGeczJF1V5pwL1cWQcoLrFBZd+AFbPOMsBI84"
+        "XWY/LRjfrSJVVyYj4+JPSPyByV+kAAAwdl8VNq7FrwAAAABJRU5ErkJggg=="
+    ),
     "tabs/challenge.png": (
         "iVBORw0KGgoAAAANSUhEUgAAAIIAAAAoCAYAAAAyhCJ1AAAAAXNSR0IArs4c6QAAAARnQU1BAACx"
         "jwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAACc0SURBVHhepZwHtF1Xeee/c3t593W9py5LtoSL"
