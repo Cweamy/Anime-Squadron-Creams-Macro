@@ -40,11 +40,15 @@ def check_for_update() -> dict | None:
         return None
 
 
+def _exe_path() -> str:
+    return os.path.abspath(sys.argv[0])
+
+
 def download_update(url: str, callback=None) -> str | None:
-    if not getattr(sys, "frozen", False):
+    if not getattr(sys, "frozen", False) and "__compiled__" not in dir():
         return None
     try:
-        current_exe = sys.executable
+        current_exe = _exe_path()
         new_exe = current_exe + ".update"
         resp = requests.get(url, stream=True, timeout=120)
         resp.raise_for_status()
@@ -62,7 +66,7 @@ def download_update(url: str, callback=None) -> str | None:
 
 
 def apply_update_and_restart(new_exe_path: str):
-    current_exe = sys.executable
+    current_exe = _exe_path()
     old_exe = current_exe + ".old"
     batch = os.path.join(os.path.dirname(current_exe), "_update.bat")
     exe_dir = os.path.dirname(current_exe)
