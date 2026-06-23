@@ -563,7 +563,7 @@ label { display: block; margin-top: 4px; font-size: 12px; color: var(--text-dim)
 }
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 4px;
 }
 .stat-cell {

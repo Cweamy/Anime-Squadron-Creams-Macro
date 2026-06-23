@@ -83,6 +83,7 @@ class GameBot:
         self.victories = 0
         self.defeats = 0
         self.runs = 0
+        self.challenge_runs = 0
         self._task_idx = 0
         self._task_total = 0
         self._task_runs = 0
@@ -134,7 +135,7 @@ class GameBot:
         if not queue:
             return
 
-        self.victories = self.defeats = self.runs = 0
+        self.victories = self.defeats = self.runs = self.challenge_runs = 0
         self._session_start = time.monotonic()
         self._last_refresh_slot = -1
         self._last_notified_run = -1
@@ -160,6 +161,7 @@ class GameBot:
             "run_count": self.runs,
             "victory_count": self.victories,
             "defeat_count": self.defeats,
+            "challenge_runs": self.challenge_runs,
             "win_rate": round(self.victories / total * 100) if total > 0 else 0,
             "session_s": int(time.monotonic() - self._session_start) if self._session_start and self.active else 0,
             "use_task_queue": True,
@@ -252,6 +254,8 @@ class GameBot:
                 continue
 
             if self._in_challenge:
+                self.challenge_runs += 1
+                self._push()
                 if self._time_slot() != self._last_refresh_slot:
                     self.log.log("Challenge: time slot changed, checking new rewards")
                     self._leave_results()

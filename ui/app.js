@@ -158,6 +158,7 @@ async function pollStatus() {
     document.getElementById('statRuns').textContent = s.run_count;
     document.getElementById('statVD').innerHTML =
       `<span class="stat-v">${s.victory_count}</span>/<span class="stat-d">${s.defeat_count}</span>`;
+    document.getElementById('statChallenge').textContent = s.challenge_runs || 0;
 
     const ss = s.session_s || 0;
     const hh = Math.floor(ss / 3600);
@@ -822,7 +823,8 @@ async function checkForUpdate() {
       document.getElementById('updateText').textContent = `Update v${info.version} available!`;
       document.getElementById('updateBanner').classList.remove('hidden');
       const badge = document.getElementById('verBadge');
-      badge.textContent = `v${info.version} available!`;
+      const cur = badge.textContent;
+      badge.textContent = `${cur} → v${info.version}`;
       badge.classList.add('ver-badge-update');
       badge.onclick = () => document.getElementById('updateBanner').scrollIntoView({ behavior: 'smooth' });
     }
