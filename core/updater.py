@@ -45,7 +45,7 @@ def _exe_path() -> str:
 
 
 def download_update(url: str, callback=None) -> str | None:
-    if not getattr(sys, "frozen", False) and "__compiled__" not in dir():
+    if not sys.argv[0].lower().endswith(".exe"):
         return None
     try:
         current_exe = _exe_path()
