@@ -143,7 +143,7 @@ async function pollStatus() {
     pauseBtn.style.display = running ? '' : 'none';
     pauseBtn.querySelector('.icon-pause').style.display = s.paused ? 'none' : '';
     pauseBtn.querySelector('.icon-resume').style.display = s.paused ? '' : 'none';
-    pauseBtn.title = s.paused ? 'Resume' : 'Pause';
+    pauseBtn.title = s.paused ? 'Resume (F3)' : 'Pause (F3)';
     if (s.paused) pauseBtn.classList.add('btn-pause-active');
     else pauseBtn.classList.remove('btn-pause-active');
 

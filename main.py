@@ -263,6 +263,7 @@ def main():
 
         api.bot.start_anti_afk()
         keyboard.add_hotkey("F2", api.bot.halt, suppress=False)
+        keyboard.add_hotkey("F3", lambda: api.bot.resume() if api.bot.paused else api.bot.pause(), suppress=False)
 
     def on_closing():
         api.bot.stop_anti_afk()
