@@ -63,6 +63,12 @@ class Api:
     def stop_macro(self):
         self.bot.halt()
 
+    def pause_macro(self):
+        self.bot.pause()
+
+    def resume_macro(self):
+        self.bot.resume()
+
     def get_status(self) -> dict:
         return self.bot.get_info()
 

@@ -41,6 +41,8 @@ PHASE_LABELS = {
     "post_battle": "Processing result",
     "challenge_check": "Checking rewards",
     "returning": "Returning to mode",
+    "paused": "Paused",
+    "resuming": "Resuming",
 }
 
 STAGE_TABS = ("tabs/challenge.png", "tabs/raid.png", "tabs/squadron.png",
@@ -54,9 +56,12 @@ class GameBot:
         self.input = Mouse()
 
         self.active = False
+        self.paused = False
         self._phase = "idle"
         self._thread: threading.Thread | None = None
         self._halt = threading.Event()
+        self._pause = threading.Event()
+        self._pause.set()  # not paused by default
         self._afk_stop = threading.Event()
         self._afk_thread: threading.Thread | None = None
 
@@ -149,15 +154,32 @@ class GameBot:
 
     def halt(self):
         self._halt.set()
+        self._pause.set()  # unblock if paused so thread can exit
         self.active = False
+        self.paused = False
         self._phase = "idle"
         self._push()
+
+    def pause(self):
+        if self.active and not self.paused:
+            self.paused = True
+            self._pause.clear()
+            self._phase = "paused"
+            self._push()
+
+    def resume(self):
+        if self.active and self.paused:
+            self.paused = False
+            self._pause.set()
+            self._phase = "resuming"
+            self._push()
 
     def get_info(self) -> dict:
         total = self.victories + self.defeats
         return {
             "state": PHASE_LABELS.get(self._phase, self._phase),
             "running": self.active,
+            "paused": self.paused,
             "roblox_found": bool(self._hwnd and wm.is_window(self._hwnd)),
             "run_count": self.runs,
             "victory_count": self.victories,
@@ -969,6 +991,7 @@ class GameBot:
     # ══════════════════════════════════════════════════════════════
 
     def _sleep(self, seconds: float) -> bool:
+        self._pause.wait()
         return self._halt.wait(seconds)
 
     def _see(self, img: str, th=None) -> tuple[int, int] | None:

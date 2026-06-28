@@ -139,6 +139,14 @@ async function pollStatus() {
       label.textContent = newText;
     }
 
+    const pauseBtn = document.getElementById('btnPause');
+    pauseBtn.style.display = running ? '' : 'none';
+    pauseBtn.querySelector('.icon-pause').style.display = s.paused ? 'none' : '';
+    pauseBtn.querySelector('.icon-resume').style.display = s.paused ? '' : 'none';
+    pauseBtn.title = s.paused ? 'Resume' : 'Pause';
+    if (s.paused) pauseBtn.classList.add('btn-pause-active');
+    else pauseBtn.classList.remove('btn-pause-active');
+
     const overlay = document.getElementById('waitingOverlay');
     if (s.roblox_found) {
       overlay.classList.add('hidden');
@@ -809,6 +817,11 @@ async function toggleMacro() {
 }
 async function stopMacro() { await api().stop_macro(); }
 async function positionRoblox() { await api().position_roblox(); }
+async function togglePause() {
+  const s = await api().get_status();
+  if (s.paused) await api().resume_macro();
+  else await api().pause_macro();
+}
 async function launchRoblox() { await api().launch_roblox(); }
 async function rejoinGame() { await api().rejoin_game(); }
 
