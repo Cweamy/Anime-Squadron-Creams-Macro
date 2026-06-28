@@ -1,2 +1,2 @@
-VERSION = "1.6.6"
+VERSION = "1.7.0"
 GITHUB_REPO = "Cweamy/Anime-Squadron-Creams-Macro"
