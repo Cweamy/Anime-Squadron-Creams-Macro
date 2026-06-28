@@ -66,8 +66,7 @@ Grab the latest `.exe` from [**Releases**](https://github.com/Cweamy/Anime-Squad
 | **Raid** | GT, Eclipse | GT: Hidden Danger, Saiyan Hunt, Ruler Dragon, The Ultimate Evil · Eclipse: Golden Age 1–3, The Eclipse |
 | **Squadron** | GT City, Marine Lobby, Ninja Village, Eclipse | Chapter 1–4 |
 | **Story** | GT City, Marine Lobby, Ninja Village, Eclipse | Chapter 1–10 |
-| **Challenge** | — | Regular challenges |
-| **Aizen** | — | Normal / Hard |
+| **Challenge** | Regular, Aizen, Garou | Normal / Hard (Aizen & Garou) |
 
 Each task supports Normal or Hard difficulty and any repeat count. Enable **Loop** to restart the queue after all tasks finish.
 

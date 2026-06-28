@@ -107,7 +107,8 @@ class GameBot:
         self._st_story_img = ""
         self._st_chap = 1
         self._st_diff = ""
-        self._az_diff = ""
+        self._challenge_type = "Regular"
+        self._challenge_diff = ""
 
         self.on_update: callable = None
 
@@ -407,7 +408,6 @@ class GameBot:
             "Raid": "tabs/raid.png",
             "Squadron": "tabs/squadron.png",
             "Story": "tabs/story.png",
-            "Aizen": "tabs/challenge.png",
         }
         target = tab_map.get(self._mode, "tabs/challenge.png")
         confirm_map = {
@@ -444,16 +444,14 @@ class GameBot:
         self._phase = "picking_stage"
         self._push()
 
-        if self._mode == "Raid":
+        if self._mode == "Challenge":
+            self._pick_challenge()
+        elif self._mode == "Raid":
             self._pick_raid_act()
         elif self._mode == "Squadron":
             self._pick_sq_story_chap()
         elif self._mode == "Story":
             self._pick_story_chap()
-        elif self._mode == "Aizen":
-            self._pick_aizen()
-        elif self._mode == "Challenge":
-            self._pick_regular_challenge()
 
     def _pick_raid_act(self):
         for _ in range(5):
@@ -523,42 +521,34 @@ class GameBot:
         self._tap((cx, cy), times=2, gap=150, jitter=False)
         self._sleep(0.3)
 
-    def _pick_aizen(self):
+    def _pick_challenge(self, override_type=None):
+        img_map = {
+            "Regular": "challenge/regular.png",
+            "Aizen": "challenge/aizen.png",
+            "Garou": "challenge/garou.png",
+        }
+        ctype = override_type or self._challenge_type
+        img = img_map.get(ctype, "challenge/regular.png")
         x1 = self._rx + self._rw * 20 // 100
         y1 = self._ry + self._rh * 25 // 100
         x2 = self._rx + self._rw * 45 // 100
         y2 = self._ry + self._rh * 80 // 100
-        pos = self.vision.find_nav_in_subregion("challenge/aizen.png", x1, y1, x2, y2, 0.70)
+        pos = self.vision.find_nav_in_subregion(img, x1, y1, x2, y2, 0.70)
         if pos:
-            self._tap(pos, times=2, gap=80)
-        else:
-            self._tap((self._rx + self._rw * 30 // 100,
-                        self._ry + self._rh * 65 // 100), times=2, gap=100)
-        self._sleep(0.3)
-
-    def _pick_regular_challenge(self):
-        x1 = self._rx + self._rw * 20 // 100
-        y1 = self._ry + self._rh * 25 // 100
-        x2 = self._rx + self._rw * 45 // 100
-        y2 = self._ry + self._rh * 55 // 100
-        pos = self.vision.find_nav_in_subregion("challenge/regular.png", x1, y1, x2, y2, 0.70)
-        if pos:
-            self._tap((pos[0], pos[1] - 8), times=2, gap=50, jitter=False)
-        else:
-            rx = self._rx + self._rw * 333 // 1000
-            ry = self._ry + self._rh * 440 // 1000 - 8
-            self._tap((rx, ry), times=2, gap=100, jitter=False)
+            self._tap(pos, times=2, gap=80, jitter=False)
         self._sleep(0.3)
 
     def _pick_difficulty(self):
         diff_file = {
+            "Challenge": self._challenge_diff,
             "Raid": self._raid_diff,
             "Squadron": self._sq_diff,
             "Story": self._st_diff,
-            "Aizen": self._az_diff,
         }.get(self._mode, "difficulty/normal.png")
 
-        if diff_file == "difficulty/normal.png" or self._mode == "Challenge":
+        if diff_file == "difficulty/normal.png":
+            return
+        if self._mode == "Challenge" and self._challenge_type == "Regular":
             return
 
         self._phase = "setting_diff"
@@ -571,7 +561,7 @@ class GameBot:
                 self._sleep(0.5)
                 return
 
-            if self._mode == "Aizen":
+            if self._mode == "Challenge":
                 fx = self._rx + self._rw * 52 // 100
                 fy = self._ry + self._rh * 59 // 100
             else:
@@ -783,7 +773,7 @@ class GameBot:
         saved_mode = self._mode
         self._mode = "Challenge"
         self._pick_tab()
-        self._pick_regular_challenge()
+        self._pick_challenge("Regular")
 
         self._sleep(1.5)
         found = self._scan_for_desired_reward()
@@ -818,7 +808,7 @@ class GameBot:
         saved_mode = self._mode
         self._mode = "Challenge"
         self._pick_tab()
-        self._pick_regular_challenge()
+        self._pick_challenge("Regular")
 
         self._sleep(1.5)
         found = self._scan_for_desired_reward()
@@ -841,7 +831,7 @@ class GameBot:
 
         self._navigate_to_stage_screen()
         self._pick_tab()
-        self._pick_regular_challenge()
+        self._pick_challenge("Regular")
 
         self._sleep(1.5)
         found = self._scan_for_desired_reward()
@@ -1053,7 +1043,11 @@ class GameBot:
         self._diff = diff
         self._detail = ""
 
-        if self._mode == "Raid":
+        if self._mode == "Challenge":
+            self._challenge_type = t.get("map", "Regular")
+            self._challenge_diff = diff_file
+            self._detail = self._challenge_type
+        elif self._mode == "Raid":
             raid_map = t.get("map", "GT")
             act = t.get("act", list(RAID_ACT_BY_MAP.get(raid_map, {}).keys())[0] if raid_map in RAID_ACT_BY_MAP else "Hidden Danger")
             self._raid_map_img = RAID_MAP.get(raid_map, "raid/gt.png")
@@ -1075,5 +1069,3 @@ class GameBot:
             self._st_chap = int(chap_str.replace("Chapter ", "")) if "Chapter" in chap_str else 1
             self._st_diff = diff_file
             self._detail = f"{story} Ch.{self._st_chap}"
-        elif self._mode == "Aizen":
-            self._az_diff = diff_file

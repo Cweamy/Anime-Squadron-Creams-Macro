@@ -297,7 +297,6 @@ function addTask(preset) {
         <option ${mode==='Raid'?'selected':''}>Raid</option>
         <option ${mode==='Squadron'?'selected':''}>Squadron</option>
         <option ${mode==='Story'?'selected':''}>Story</option>
-        <option ${mode==='Aizen'?'selected':''}>Aizen</option>
       </select>
       <div class="rep-group">
         ×<input type="number" class="tRep" value="${rep}" min="1">
@@ -340,17 +339,18 @@ function onTaskModeChange(id, preset) {
   const diffSel = card.querySelector('.tDiff');
   mapSel.onchange = null;
 
-  if (mode === 'Raid') {
+  if (mode === 'Challenge') {
+    mapSel.innerHTML = '<option>Regular</option><option>Aizen</option><option>Garou</option>';
+    mapSel.disabled = false;
+    actSel.innerHTML = '<option>-</option>'; actSel.disabled = true;
+    diffSel.disabled = false;
+  } else if (mode === 'Raid') {
     mapSel.innerHTML = '<option>GT</option><option>Eclipse</option>';
     mapSel.disabled = false; mapSel.onchange = () => onTaskMapChange(id);
     diffSel.disabled = false;
   } else if (mode === 'Squadron' || mode === 'Story') {
     mapSel.innerHTML = '<option>GT City</option><option>Marine Lobby</option><option>Ninja Village</option><option>Eclipse</option>';
     mapSel.disabled = false; mapSel.onchange = () => onTaskMapChange(id);
-    diffSel.disabled = false;
-  } else if (mode === 'Aizen') {
-    mapSel.innerHTML = '<option>-</option>'; mapSel.disabled = true;
-    actSel.innerHTML = '<option>-</option>'; actSel.disabled = true;
     diffSel.disabled = false;
   } else {
     mapSel.innerHTML = '<option>-</option>'; mapSel.disabled = true;
