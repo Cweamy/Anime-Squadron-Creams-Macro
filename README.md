@@ -35,8 +35,9 @@
 
 - **Task Queue** — Queue multiple farming tasks with drag-and-drop reordering and looping support.
 - **Loadout System** — Built-in presets (Secret Mats, Mythic Mats, Gold & Trait Farm, etc.) and custom loadouts you can save and stack.
-- **Game Modes** — Challenge, Raid, Squadron, Story, and Aizen with full stage/map/chapter/difficulty selection.
+- **Game Modes** — Challenge, Raid, Invasion, Squadron, and Story with full stage/map/chapter/difficulty selection.
 - **Raid Maps** — GT (Hidden Danger, Saiyan Hunt, Ruler Dragon, The Ultimate Evil) and Eclipse (Golden Age 1–3, The Eclipse).
+- **Invasion** — The Lava Continent (Ashfall Continent, Infernal Landmass, Magma Rift, Scorched Horizon).
 - **Squadron/Story Maps** — GT City, Marine Lobby, Ninja Village, Eclipse — with up to 10 acts (Story) or 4 chapters (Squadron).
 - **Challenge Reward Scanner** — Automatically checks challenge rewards every 30 minutes. Select desired rewards (Stat Reroll, Trait Reroll) and the macro farms them until the slot resets. Priority mode leaves the current battle instantly when rewards refresh.
 - **Live Dashboard** — Win rate, run count, V/D stats, session timer, and task progress bar — all updating in real time.
@@ -64,6 +65,7 @@ Grab the latest `.exe` from [**Releases**](https://github.com/Cweamy/Anime-Squad
 | Mode | Maps | Acts / Chapters |
 |------|------|-----------------|
 | **Raid** | GT, Eclipse | GT: Hidden Danger, Saiyan Hunt, Ruler Dragon, The Ultimate Evil · Eclipse: Golden Age 1–3, The Eclipse |
+| **Invasion** | The Lava Continent | Ashfall Continent, Infernal Landmass, Magma Rift, Scorched Horizon |
 | **Squadron** | GT City, Marine Lobby, Ninja Village, Eclipse | Chapter 1–4 |
 | **Story** | GT City, Marine Lobby, Ninja Village, Eclipse | Chapter 1–10 |
 | **Challenge** | Regular, Aizen, Garou | Normal / Hard (Aizen & Garou) |
@@ -109,6 +111,7 @@ Each run sends an embed with mode, win rate, battle time, task progress, session
 | Key | Action |
 |-----|--------|
 | `F2` | Emergency stop |
+| `F3` | Pause / Resume |
 
 ## Building from Source
 

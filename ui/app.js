@@ -303,6 +303,7 @@ function addTask(preset) {
       <select class="tMode" onchange="onTaskModeChange(${id})">
         <option ${mode==='Challenge'?'selected':''}>Challenge</option>
         <option ${mode==='Raid'?'selected':''}>Raid</option>
+        <option ${mode==='Invasion'?'selected':''}>Invasion</option>
         <option ${mode==='Squadron'?'selected':''}>Squadron</option>
         <option ${mode==='Story'?'selected':''}>Story</option>
       </select>
@@ -356,6 +357,10 @@ function onTaskModeChange(id, preset) {
     mapSel.innerHTML = '<option>GT</option><option>Eclipse</option>';
     mapSel.disabled = false; mapSel.onchange = () => onTaskMapChange(id);
     diffSel.disabled = false;
+  } else if (mode === 'Invasion') {
+    mapSel.innerHTML = '<option>The Lava Continent</option>';
+    mapSel.disabled = false; mapSel.onchange = () => onTaskMapChange(id);
+    diffSel.disabled = false;
   } else if (mode === 'Squadron' || mode === 'Story') {
     mapSel.innerHTML = '<option>GT City</option><option>Marine Lobby</option><option>Ninja Village</option><option>Eclipse</option>';
     mapSel.disabled = false; mapSel.onchange = () => onTaskMapChange(id);
@@ -368,7 +373,7 @@ function onTaskModeChange(id, preset) {
 
   if (preset) {
     applyPreset(id, preset);
-  } else if (mode === 'Raid' || mode === 'Squadron' || mode === 'Story') {
+  } else if (mode === 'Raid' || mode === 'Invasion' || mode === 'Squadron' || mode === 'Story') {
     onTaskMapChange(id);
   }
 }
@@ -376,6 +381,10 @@ function onTaskModeChange(id, preset) {
 const RAID_ACTS = {
   'GT': ['Hidden Danger', 'Saiyan Hunt', 'Ruler Dragon', 'The Ultimate Evil'],
   'Eclipse': ['Golden Age', 'Golden Age 2', 'Golden Age 3', 'The Eclipse'],
+};
+
+const INVASION_ACTS = {
+  'The Lava Continent': ['Ashfall Continent', 'Infernal Landmass', 'Magma Rift', 'Scorched Horizon'],
 };
 
 function onTaskMapChange(id) {
@@ -388,6 +397,10 @@ function onTaskMapChange(id) {
 
   if (mode === 'Raid') {
     const acts = RAID_ACTS[map] || RAID_ACTS['GT'];
+    for (const a of acts) actSel.innerHTML += `<option>${a}</option>`;
+    actSel.disabled = false;
+  } else if (mode === 'Invasion') {
+    const acts = INVASION_ACTS[map] || INVASION_ACTS['The Lava Continent'];
     for (const a of acts) actSel.innerHTML += `<option>${a}</option>`;
     actSel.disabled = false;
   } else if (mode === 'Squadron' || mode === 'Story') {

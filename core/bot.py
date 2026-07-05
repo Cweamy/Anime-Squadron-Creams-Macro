@@ -5,7 +5,8 @@ from enum import Enum
 
 from core.constants import (
     FIXED_WIN_W, FIXED_WIN_H, PLACE_ID,
-    RAID_MAP, RAID_ACT_BY_MAP, SQUAD_STORY_MAP, SQUAD_CHAP_MAP,
+    RAID_MAP, RAID_ACT_BY_MAP, INVASION_MAP, INVASION_ACT_BY_MAP,
+    SQUAD_STORY_MAP, SQUAD_CHAP_MAP,
 )
 from core.screen import Screen
 from core.mouse import Mouse
@@ -46,7 +47,7 @@ PHASE_LABELS = {
 }
 
 STAGE_TABS = ("tabs/challenge.png", "tabs/raid.png", "tabs/squadron.png",
-              "tabs/story.png", "room/friends_only.png")
+              "tabs/story.png", "tabs/invasion.png", "room/friends_only.png")
 
 
 class GameBot:
@@ -106,6 +107,9 @@ class GameBot:
         self._raid_map_img = ""
         self._raid_act = ""
         self._raid_diff = ""
+        self._inv_map_img = ""
+        self._inv_act = ""
+        self._inv_diff = ""
         self._sq_story = ""
         self._sq_chap = ""
         self._sq_diff = ""
@@ -430,6 +434,7 @@ class GameBot:
             "Raid": "tabs/raid.png",
             "Squadron": "tabs/squadron.png",
             "Story": "tabs/story.png",
+            "Invasion": "tabs/invasion.png",
         }
         target = tab_map.get(self._mode, "tabs/challenge.png")
         confirm_map = {
@@ -437,6 +442,7 @@ class GameBot:
             "tabs/raid.png": lambda: any(self._see(img) for acts in RAID_ACT_BY_MAP.values() for img in acts.values()),
             "tabs/squadron.png": lambda: self._see("squadron/panel_header.png"),
             "tabs/story.png": lambda: self._see("story/panel_header.png"),
+            "tabs/invasion.png": lambda: any(self._see(img) for img in INVASION_MAP.values()) or any(self._see(img) for acts in INVASION_ACT_BY_MAP.values() for img in acts.values()),
         }
         confirm = confirm_map.get(target)
 
@@ -456,9 +462,10 @@ class GameBot:
                     "tabs/challenge.png": (590, 770),
                     "tabs/raid.png": (735, 790),
                 }
-                pct = coords.get(target, (590, 770))
-                self._tap((self._rx + self._rw * pct[0] // 1000,
-                           self._ry + self._rh * pct[1] // 1000), gap=200)
+                pct = coords.get(target)
+                if pct:
+                    self._tap((self._rx + self._rw * pct[0] // 1000,
+                               self._ry + self._rh * pct[1] // 1000), gap=200)
 
             self._sleep(0.6)
 
@@ -469,17 +476,19 @@ class GameBot:
         if self._mode == "Challenge":
             self._pick_challenge()
         elif self._mode == "Raid":
-            self._pick_raid_act()
+            self._pick_map_then_act(self._raid_map_img, self._raid_act)
+        elif self._mode == "Invasion":
+            self._pick_map_then_act(self._inv_map_img, self._inv_act)
         elif self._mode == "Squadron":
             self._pick_sq_story_chap()
         elif self._mode == "Story":
             self._pick_story_chap()
 
-    def _pick_raid_act(self):
+    def _pick_map_then_act(self, map_img: str, act_img: str):
         for _ in range(5):
             if self._halt.is_set():
                 return
-            pos = self._see(self._raid_map_img)
+            pos = self._see(map_img)
             if pos:
                 self._tap(pos, times=2, gap=100)
                 self._sleep(0.5)
@@ -489,7 +498,7 @@ class GameBot:
         for _ in range(5):
             if self._halt.is_set():
                 return
-            pos = self._see(self._raid_act)
+            pos = self._see(act_img)
             if pos:
                 self._tap(pos, times=2, gap=100)
                 self._sleep(0.25)
@@ -564,6 +573,7 @@ class GameBot:
         diff_file = {
             "Challenge": self._challenge_diff,
             "Raid": self._raid_diff,
+            "Invasion": self._inv_diff,
             "Squadron": self._sq_diff,
             "Story": self._st_diff,
         }.get(self._mode, "difficulty/normal.png")
@@ -1078,6 +1088,14 @@ class GameBot:
             self._raid_act = acts.get(act, list(acts.values())[0] if acts else "raid/hidden_danger.png")
             self._raid_diff = diff_file
             self._detail = f"{raid_map} — {act}"
+        elif self._mode == "Invasion":
+            inv_map = t.get("map", "The Lava Continent")
+            acts = INVASION_ACT_BY_MAP.get(inv_map, {})
+            act = t.get("act", next(iter(acts), "Ashfall Continent"))
+            self._inv_map_img = INVASION_MAP.get(inv_map, "invasion/the_lava_continent.png")
+            self._inv_act = acts.get(act, next(iter(acts.values()), "invasion/ashfall_continent.png"))
+            self._inv_diff = diff_file
+            self._detail = f"{inv_map} — {act}"
         elif self._mode == "Squadron":
             story = t.get("map", "GT City")
             chap = t.get("act", "Chapter 1")

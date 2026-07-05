@@ -49,6 +49,19 @@ RAID_ACT_BY_MAP = {
     },
 }
 
+INVASION_MAP = {
+    "The Lava Continent": "invasion/the_lava_continent.png",
+}
+
+INVASION_ACT_BY_MAP = {
+    "The Lava Continent": {
+        "Ashfall Continent": "invasion/ashfall_continent.png",
+        "Infernal Landmass": "invasion/infernal_landmass.png",
+        "Magma Rift": "invasion/magma_rift.png",
+        "Scorched Horizon": "invasion/scorched_horizon.png",
+    },
+}
+
 SQUAD_STORY_MAP = {
     "GT City": "squadron/gt_city.png",
     "Marine Lobby": "squadron/marine_lobby.png",
