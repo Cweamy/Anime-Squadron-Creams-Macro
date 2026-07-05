@@ -17,12 +17,16 @@ import webview
 import keyboard
 
 from core import window as wm
+from core import tray
 from core.constants import REWARD_DIR, SCRIPT_DIR, FIXED_WIN_W, FIXED_WIN_H
 from core.logger import Logger
 from core.bot import GameBot
 from core import settings as cfg
 from core.version import VERSION
 from core.updater import check_for_update, download_update, apply_update_and_restart
+
+HOTKEY_DEFAULTS = {"stop": "f2", "pause": "f3", "hide": "f4"}
+HOTKEY_ACTIONS = tuple(HOTKEY_DEFAULTS.keys())
 
 wm.set_dpi_aware()
 
@@ -53,6 +57,9 @@ class Api:
         self.bot = GameBot(self.logger)
         self._window = None
         self._poll_thread = None
+        self._hidden = False
+        self._auto_paused = False
+        self._on_hotkeys_changed = None
 
         tf = cfg.load().get("trait_farm", {})
         self.bot.set_trait_state(tf.get("stages", {}), tf.get("last_reset", ""))
@@ -84,6 +91,53 @@ class Api:
 
     def get_trait_state(self) -> dict:
         return self.bot.get_trait_state()
+
+    def get_hotkeys(self) -> dict:
+        data = cfg.load()
+        keys = dict(HOTKEY_DEFAULTS)
+        keys.update(data.get("hotkeys", {}))
+        return keys
+
+    def set_hotkey(self, action: str, key: str) -> dict:
+        if action not in HOTKEY_ACTIONS or not key:
+            return {"ok": False}
+        data = cfg.load()
+        keys = dict(HOTKEY_DEFAULTS)
+        keys.update(data.get("hotkeys", {}))
+        keys[action] = key.lower()
+        data["hotkeys"] = keys
+        cfg.save(data)
+        if self._on_hotkeys_changed:
+            self._on_hotkeys_changed(keys)
+        return {"ok": True}
+
+    def toggle_hide(self):
+        if self._hidden:
+            self.restore_from_tray()
+        else:
+            self.hide_to_tray()
+
+    def hide_to_tray(self):
+        if self._hidden or not self._window:
+            return
+        self._hidden = True
+        if self.bot.active and not self.bot.paused:
+            self._auto_paused = True
+            self.bot.pause()
+        else:
+            self._auto_paused = False
+        self._window.hide()
+        tray.add_icon(ICO_PATH, "Cream's Macro (hidden) — click to restore", self.restore_from_tray)
+
+    def restore_from_tray(self):
+        if not self._hidden or not self._window:
+            return
+        self._hidden = False
+        tray.remove_icon()
+        self._window.show()
+        if self._auto_paused:
+            self._auto_paused = False
+            self.bot.resume()
 
     def set_trait_count(self, stage_key: str, count: int):
         self.bot.set_trait_count(stage_key, count)
@@ -268,6 +322,20 @@ def main():
     )
     api.set_window(window)
 
+    def _register_hotkeys(keys: dict):
+        keyboard.unhook_all()
+        actions = {
+            "stop": api.bot.halt,
+            "pause": lambda: api.bot.resume() if api.bot.paused else api.bot.pause(),
+            "hide": api.toggle_hide,
+        }
+        for action, fn in actions.items():
+            key = keys.get(action) or HOTKEY_DEFAULTS[action]
+            try:
+                keyboard.add_hotkey(key, fn, suppress=False)
+            except (ValueError, ImportError):
+                keyboard.add_hotkey(HOTKEY_DEFAULTS[action], fn, suppress=False)
+
     def on_shown():
         _close_splash()
         gui_hwnd = _find_gui(GUI_TITLE)
@@ -285,10 +353,11 @@ def main():
                 api.start_roblox_poll()
 
         api.bot.start_anti_afk()
-        keyboard.add_hotkey("F2", api.bot.halt, suppress=False)
-        keyboard.add_hotkey("F3", lambda: api.bot.resume() if api.bot.paused else api.bot.pause(), suppress=False)
+        _register_hotkeys(api.get_hotkeys())
+        api._on_hotkeys_changed = _register_hotkeys
 
     def on_closing():
+        tray.remove_icon()
         api.bot.stop_anti_afk()
         api.bot.halt()
         if api.bot._hwnd and wm.is_window(api.bot._hwnd):

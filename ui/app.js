@@ -43,6 +43,7 @@ window.addEventListener('pywebviewready', async () => {
 
   try { checkForUpdate(); } catch (e) {}
   try { await refreshLoadouts(); await refreshAppendList(); } catch (e) {}
+  try { await loadHotkeys(); } catch (e) {}
 
   setInterval(pollStatus, 250);
   setInterval(pollLogs, 2000);
@@ -974,3 +975,89 @@ async function doUpdate() {
     document.getElementById('btnUpdate').onclick = () => api().open_github();
   }
 }
+
+// ── Hotkeys / Settings Modal ──
+let hotkeys = { stop: 'f2', pause: 'f3', hide: 'f4' };
+let rebindingAction = null;
+
+function fmtKeyLabel(key) {
+  return (key || '').split('+').map(p => p.length <= 2 ? p.toUpperCase() : p[0].toUpperCase() + p.slice(1)).join('+');
+}
+
+async function loadHotkeys() {
+  hotkeys = await api().get_hotkeys();
+  for (const action of Object.keys(hotkeys)) {
+    const btn = document.getElementById('hkBtn_' + action);
+    if (btn) btn.textContent = fmtKeyLabel(hotkeys[action]);
+  }
+}
+
+function openSettingsModal() {
+  document.getElementById('settingsModal').classList.remove('hidden');
+}
+
+function closeSettingsModal() {
+  cancelRebind();
+  document.getElementById('settingsModal').classList.add('hidden');
+}
+
+function beginRebind(action) {
+  if (rebindingAction) cancelRebind();
+  rebindingAction = action;
+  const btn = document.getElementById('hkBtn_' + action);
+  btn.classList.add('listening');
+  btn.textContent = 'Press key...';
+}
+
+function cancelRebind() {
+  if (!rebindingAction) return;
+  const btn = document.getElementById('hkBtn_' + rebindingAction);
+  if (btn) {
+    btn.classList.remove('listening');
+    btn.textContent = fmtKeyLabel(hotkeys[rebindingAction]);
+  }
+  rebindingAction = null;
+}
+
+const IGNORED_KEYS = new Set(['Control', 'Shift', 'Alt', 'Meta', 'OS']);
+const KEY_NAME_MAP = {
+  ' ': 'space', 'arrowup': 'up', 'arrowdown': 'down', 'arrowleft': 'left', 'arrowright': 'right',
+  'escape': 'esc', 'delete': 'delete', 'backspace': 'backspace', 'enter': 'enter', 'tab': 'tab',
+};
+
+document.addEventListener('keydown', async (e) => {
+  if (!rebindingAction) return;
+  e.preventDefault();
+  e.stopPropagation();
+
+  if (e.key === 'Escape') {
+    cancelRebind();
+    return;
+  }
+  if (IGNORED_KEYS.has(e.key)) return;
+
+  const parts = [];
+  if (e.ctrlKey) parts.push('ctrl');
+  if (e.altKey) parts.push('alt');
+  if (e.shiftKey) parts.push('shift');
+  const lowerKey = e.key.toLowerCase();
+  parts.push(KEY_NAME_MAP[lowerKey] || lowerKey);
+  const combo = parts.join('+');
+
+  const action = rebindingAction;
+  rebindingAction = null;
+  const btn = document.getElementById('hkBtn_' + action);
+  btn.classList.remove('listening');
+
+  try {
+    const res = await api().set_hotkey(action, combo);
+    if (res && res.ok) {
+      hotkeys[action] = combo;
+      btn.textContent = fmtKeyLabel(combo);
+    } else {
+      btn.textContent = fmtKeyLabel(hotkeys[action]);
+    }
+  } catch (err) {
+    btn.textContent = fmtKeyLabel(hotkeys[action]);
+  }
+}, true);

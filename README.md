@@ -48,6 +48,7 @@
 - **Auto Update** — Checks GitHub Releases on startup with one-click update.
 - **Docked UI** — Roblox docks directly into the macro panel for a clean single-window experience.
 - **Instant Stop** — Press `F2` or click Stop to halt immediately, even mid-battle.
+- **Hide to Tray** — Press `F4` to hide the whole window and drop a tray icon; auto-pauses if a task is running and resumes when restored. Every hotkey is rebindable from the settings (gear) icon.
 
 ## Download
 
@@ -114,6 +115,9 @@ Each run sends an embed with mode, win rate, battle time, task progress, session
 |-----|--------|
 | `F2` | Emergency stop |
 | `F3` | Pause / Resume |
+| `F4` | Hide to tray (auto-pauses if running; click the tray icon to restore) |
+
+All hotkeys can be rebound from the gear icon in the header.
 
 ## Building from Source
 

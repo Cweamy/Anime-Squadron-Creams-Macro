@@ -10,6 +10,7 @@ _DEFAULTS = {
     "webhook_enabled": True,
     "queue": [],
     "trait_farm": {"stages": {}, "last_reset": ""},
+    "hotkeys": {"stop": "f2", "pause": "f3", "hide": "f4"},
 }
 
 
