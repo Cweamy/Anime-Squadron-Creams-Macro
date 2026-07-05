@@ -199,9 +199,15 @@ class Api:
     def validate_webhook(self, url: str) -> dict:
         if not url:
             return {"valid": False, "reason": "empty"}
-        if not url.startswith("https://discord.com/api/webhooks/"):
+        prefixes = (
+            "https://discord.com/api/webhooks/",
+            "https://canary.discord.com/api/webhooks/",
+            "https://ptb.discord.com/api/webhooks/",
+        )
+        prefix = next((p for p in prefixes if url.startswith(p)), None)
+        if not prefix:
             return {"valid": False, "reason": "not_discord"}
-        parts = url.replace("https://discord.com/api/webhooks/", "").split("/")
+        parts = url[len(prefix):].split("/")
         if len(parts) < 2 or not parts[0].isdigit():
             return {"valid": False, "reason": "bad_format"}
         return {"valid": True, "reason": "ok"}
