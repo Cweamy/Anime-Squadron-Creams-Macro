@@ -9,6 +9,7 @@ _DEFAULTS = {
     "webhook_url": "",
     "webhook_enabled": True,
     "queue": [],
+    "trait_farm": {"stages": {}, "last_reset": ""},
 }
 
 

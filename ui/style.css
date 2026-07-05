@@ -741,6 +741,49 @@ label { display: block; margin-top: 4px; font-size: 12px; color: var(--text-dim)
 }
 .reward-card:has(input:checked) .reward-name { color: var(--blue); }
 
+/* ══ Trait Farm (per-task option in Task Queue) ══ */
+.task-row-trait {
+  display: none;
+  align-items: center; gap: 8px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--border);
+}
+.task-row-trait .toggle {
+  font-size: 10px; margin-top: 0;
+  flex-shrink: 0;
+}
+.trait-count-group {
+  display: flex; align-items: center; gap: 4px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.task-row-trait .tTraitCount {
+  width: 46px; flex: none;
+  padding: 3px 4px; font-size: 11px; text-align: center;
+}
+.task-row-trait .tTraitLimitLabel {
+  font-size: 10px; color: var(--text-dim); white-space: nowrap;
+}
+.btn-trait-reset {
+  background: var(--bg-surface); color: var(--text-dim);
+  border: 1px solid var(--border); border-radius: 4px;
+  width: 20px; height: 20px; flex: none;
+  font-size: 11px; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s ease;
+}
+.btn-trait-reset:hover {
+  color: var(--blue); border-color: var(--blue);
+  transform: rotate(-45deg);
+}
+
+.trait-inline-row {
+  display: flex; align-items: center;
+  margin-top: 6px;
+  font-size: 10px; color: var(--text-dim);
+}
+
 /* ══ Waiting Overlay ══ */
 .waiting-overlay {
   position: fixed;

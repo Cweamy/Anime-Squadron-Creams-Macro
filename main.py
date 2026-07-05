@@ -54,6 +54,16 @@ class Api:
         self._window = None
         self._poll_thread = None
 
+        tf = cfg.load().get("trait_farm", {})
+        self.bot.set_trait_state(tf.get("stages", {}), tf.get("last_reset", ""))
+        self.bot.on_trait_update = self._on_trait_update
+
+    def _on_trait_update(self, state: dict):
+        data = cfg.load()
+        counts = {key: info["count"] for key, info in state["stages"].items()}
+        data["trait_farm"] = {"stages": counts, "last_reset": state["last_reset"]}
+        cfg.save(data)
+
     def set_window(self, w):
         self._window = w
 
@@ -71,6 +81,12 @@ class Api:
 
     def get_status(self) -> dict:
         return self.bot.get_info()
+
+    def get_trait_state(self) -> dict:
+        return self.bot.get_trait_state()
+
+    def set_trait_count(self, stage_key: str, count: int):
+        self.bot.set_trait_count(stage_key, count)
 
     def position_roblox(self):
         self.bot.dock_game()
@@ -132,6 +148,7 @@ class Api:
         icon_map = {
             "stat_reroll.png": "Icons/Stat.png",
             "trait_reroll.png": "Icons/Trait.png",
+            "gem.png": "Icons/Gem.png",
         }
         result = {}
         try:

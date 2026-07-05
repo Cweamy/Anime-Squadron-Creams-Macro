@@ -9,6 +9,10 @@ window.addEventListener('pywebviewready', async () => {
   } catch (e) { console.error('loadRewards', e); }
 
   try {
+    traitStageData = await api().get_trait_state();
+  } catch (e) { console.error('loadTraitState', e); }
+
+  try {
     const s = await api().load_settings();
     if (s.webhook_url) {
       document.getElementById('txtWebhook').value = s.webhook_url;
@@ -42,6 +46,7 @@ window.addEventListener('pywebviewready', async () => {
 
   setInterval(pollStatus, 250);
   setInterval(pollLogs, 2000);
+  setInterval(pollTraitData, 2000);
   setInterval(autoSaveQueue, 10000);
 
   document.getElementById('txtLoadoutName').addEventListener('keydown', e => {
@@ -186,6 +191,15 @@ async function pollStatus() {
     } else {
       pRow.style.display = 'none';
     }
+
+    const traitRow = document.getElementById('traitInlineRow');
+    if (s.trait_tracking && running) {
+      traitRow.style.display = 'flex';
+      document.getElementById('traitInlineText').textContent =
+        `${s.trait_stage}: ${s.trait_count}/${s.trait_limit}`;
+    } else {
+      traitRow.style.display = 'none';
+    }
   } catch (e) {}
 }
 
@@ -297,6 +311,7 @@ function addTask(preset) {
   const mode = preset ? preset.mode : 'Raid';
   const rep  = preset ? preset.repeat : 10;
   const diff = preset ? preset.diff : 'Normal';
+  const trackTrait = preset && preset.track_trait ? 'checked' : '';
 
   div.innerHTML = `
     <div class="task-row-top">
@@ -321,9 +336,22 @@ function addTask(preset) {
       <select class="tAct"><option>-</option></select>
       <div class="drag-handle" title="Drag to reorder">⠿</div>
     </div>
+    <div class="task-row-trait">
+      <label class="toggle" title="Skip this stage entirely once its daily trait limit is hit">
+        <input type="checkbox" class="tTraitTrack" ${trackTrait}>
+        <span class="toggle-track"></span>
+        Track Trait
+      </label>
+      <div class="trait-count-group">
+        <input type="number" class="tTraitCount" min="0" value="0" onchange="onTaskTraitCountChange(${id})">
+        <span class="tTraitLimitLabel">/ 100</span>
+      </div>
+      <button type="button" class="btn-trait-reset" onclick="onTaskTraitReset(${id})" title="Reset this stage's count to 0">↺</button>
+    </div>
   `;
   document.getElementById('taskList').appendChild(div);
   onTaskModeChange(id, preset);
+  updateTraitRow(id);
 }
 
 function applyPreset(id, preset) {
@@ -337,6 +365,7 @@ function applyPreset(id, preset) {
   if (preset.act && preset.act !== '-') {
     card.querySelector('.tAct').value = preset.act;
   }
+  updateTraitRow(id);
 }
 
 function onTaskModeChange(id, preset) {
@@ -347,22 +376,26 @@ function onTaskModeChange(id, preset) {
   const actSel = card.querySelector('.tAct');
   const diffSel = card.querySelector('.tDiff');
   mapSel.onchange = null;
+  actSel.onchange = null;
 
   if (mode === 'Challenge') {
     mapSel.innerHTML = '<option>Regular</option><option>Aizen</option><option>Garou</option>';
     mapSel.disabled = false;
+    mapSel.onchange = () => updateTraitRow(id);
     actSel.innerHTML = '<option>-</option>'; actSel.disabled = true;
     diffSel.disabled = false;
   } else if (mode === 'Raid') {
     mapSel.innerHTML = '<option>GT</option><option>Eclipse</option>';
     mapSel.disabled = false; mapSel.onchange = () => onTaskMapChange(id);
+    actSel.onchange = () => updateTraitRow(id);
     diffSel.disabled = false;
   } else if (mode === 'Invasion') {
     mapSel.innerHTML = '<option>The Lava Continent</option>';
     mapSel.disabled = false; mapSel.onchange = () => onTaskMapChange(id);
     diffSel.disabled = false;
   } else if (mode === 'Squadron' || mode === 'Story') {
-    mapSel.innerHTML = '<option>GT City</option><option>Marine Lobby</option><option>Ninja Village</option><option>Eclipse</option>';
+    mapSel.innerHTML = '<option>GT City</option><option>Marine Lobby</option><option>Ninja Village</option><option>Eclipse</option>'
+      + (mode === 'Story' ? '<option>The Ice Continent</option>' : '');
     mapSel.disabled = false; mapSel.onchange = () => onTaskMapChange(id);
     diffSel.disabled = false;
   } else {
@@ -376,6 +409,7 @@ function onTaskModeChange(id, preset) {
   } else if (mode === 'Raid' || mode === 'Invasion' || mode === 'Squadron' || mode === 'Story') {
     onTaskMapChange(id);
   }
+  updateTraitRow(id);
 }
 
 const RAID_ACTS = {
@@ -410,9 +444,74 @@ function onTaskMapChange(id) {
     else if (map === 'Ninja Village' || map === 'Eclipse') max = 4;
     for (let i = 1; i <= max; i++) actSel.innerHTML += `<option>Chapter ${i}</option>`;
   }
+  updateTraitRow(id);
 }
 
 function removeTask(id) { const el = document.getElementById('task_'+id); if (el) el.remove(); }
+
+// ── Trait Farm (per-task option) ──
+let traitStageData = { stages: {}, last_reset: '' };
+
+function traitStageInfo(mode, map, act) {
+  if (mode === 'Challenge') {
+    if (map === 'Garou') return { key: 'Garou', limit: 30 };
+    if (map === 'Aizen') return { key: 'Aizen', limit: 100 };
+  } else if (mode === 'Raid') {
+    if (map === 'GT' && act === 'The Ultimate Evil') return { key: 'GT — The Ultimate Evil', limit: 100 };
+    if (map === 'Eclipse' && act === 'The Eclipse') return { key: 'Eclipse — The Eclipse', limit: 100 };
+  }
+  return null;
+}
+
+function updateTraitRow(id) {
+  const card = document.getElementById('task_' + id);
+  if (!card) return;
+  const row = card.querySelector('.task-row-trait');
+  if (!row) return;
+  const mode = card.querySelector('.tMode').value;
+  const map = card.querySelector('.tMap').value;
+  const act = card.querySelector('.tAct').value;
+  const info = traitStageInfo(mode, map, act);
+
+  if (!info) {
+    row.style.display = 'none';
+    delete card.dataset.traitKey;
+    return;
+  }
+
+  row.style.display = 'flex';
+  card.dataset.traitKey = info.key;
+  const countInput = card.querySelector('.tTraitCount');
+  const limitLabel = card.querySelector('.tTraitLimitLabel');
+  const stageData = traitStageData.stages[info.key];
+  if (document.activeElement !== countInput) {
+    countInput.value = stageData ? stageData.count : 0;
+  }
+  limitLabel.textContent = '/ ' + info.limit;
+}
+
+async function onTaskTraitCountChange(id) {
+  const card = document.getElementById('task_' + id);
+  if (!card || !card.dataset.traitKey) return;
+  const val = parseInt(card.querySelector('.tTraitCount').value) || 0;
+  await api().set_trait_count(card.dataset.traitKey, val);
+}
+
+async function onTaskTraitReset(id) {
+  const card = document.getElementById('task_' + id);
+  if (!card || !card.dataset.traitKey) return;
+  await api().set_trait_count(card.dataset.traitKey, 0);
+  card.querySelector('.tTraitCount').value = 0;
+}
+
+async function pollTraitData() {
+  try {
+    traitStageData = await api().get_trait_state();
+    document.querySelectorAll('#taskList .task-card').forEach(card => {
+      updateTraitRow(card.id.replace('task_', ''));
+    });
+  } catch (e) {}
+}
 
 // ── Drag & Drop ──
 (function() {
@@ -523,6 +622,7 @@ function getQueueTasks() {
       map: card.querySelector('.tMap').value,
       act: card.querySelector('.tAct').value,
       diff: card.querySelector('.tDiff').value,
+      track_trait: card.querySelector('.tTraitTrack').checked,
     });
   });
   return tasks;

@@ -7,6 +7,8 @@ from core.constants import (
     FIXED_WIN_W, FIXED_WIN_H, PLACE_ID,
     RAID_MAP, RAID_ACT_BY_MAP, INVASION_MAP, INVASION_ACT_BY_MAP,
     SQUAD_STORY_MAP, SQUAD_CHAP_MAP,
+    TRAIT_LIMIT, GAROU_LIMIT, TRAIT_STAGES, TRAIT_DROP_IMGS, TRAIT_DROP_THRESHOLD,
+    TRAIT_KEY_AIZEN, TRAIT_KEY_GAROU, TRAIT_KEY_GT_ULTIMATE_EVIL, TRAIT_KEY_ECLIPSE_THE_ECLIPSE,
 )
 from core.screen import Screen
 from core.mouse import Mouse
@@ -118,8 +120,16 @@ class GameBot:
         self._st_diff = ""
         self._challenge_type = "Regular"
         self._challenge_diff = ""
+        self._raid_map_name = ""
+        self._raid_act_name = ""
+
+        # Trait farm — per-stage counts shared across any task that opts in
+        self._trait_track_current = False
+        self._trait_counts: dict[str, int] = {}
+        self._trait_last_reset = ""
 
         self.on_update: callable = None
+        self.on_trait_update: callable = None
 
     # ══════════════════════════════════════════════════════════════
     # PUBLIC API
@@ -180,6 +190,7 @@ class GameBot:
 
     def get_info(self) -> dict:
         total = self.victories + self.defeats
+        trait_state = self.get_trait_state()
         return {
             "state": PHASE_LABELS.get(self._phase, self._phase),
             "running": self.active,
@@ -196,6 +207,11 @@ class GameBot:
             "task_count": self._task_total,
             "task_run_count": self._task_runs,
             "task_run_target": self._task_target,
+            "trait_tracking": trait_state["tracking"],
+            "trait_stage": trait_state["current_key"],
+            "trait_count": trait_state["current_count"],
+            "trait_limit": trait_state["current_limit"],
+            "trait_last_reset": trait_state["last_reset"],
         }
 
     def dock_game(self):
@@ -261,6 +277,17 @@ class GameBot:
     def _run_task(self, task: dict):
         self._apply_task(task)
         self._task_runs = 0
+        self._check_trait_reset()
+
+        if self._trait_track_current:
+            trait_info = self._trait_stage_info()
+            if trait_info:
+                key, limit = trait_info
+                count = self._trait_counts.get(key, 0)
+                if count >= limit:
+                    self.log.log(f"Trait farm [{key}]: already at limit ({count}/{limit}), skipping task")
+                    self._notify("TRAIT LIMIT REACHED")
+                    return
 
         if self._should_check_rewards():
             self._do_challenge_check_startup()
@@ -302,6 +329,17 @@ class GameBot:
             elif outcome == "defeat":
                 self.defeats += 1
             self._notify(outcome.upper() if outcome != "unknown" else "STAGE END (Detected)")
+
+            if self._trait_track_current:
+                trait_info = self._trait_stage_info()
+                if trait_info:
+                    key, limit = trait_info
+                    count = self._trait_counts.get(key, 0)
+                    if count >= limit:
+                        self.log.log(f"Trait farm [{key}]: limit reached ({count}/{limit}), ending task")
+                        self._notify("TRAIT LIMIT REACHED")
+                        self._leave_results()
+                        return
 
             if self._task_runs >= self._task_target:
                 self._leave_results()
@@ -677,7 +715,10 @@ class GameBot:
                 self._sleep(0.3)
                 result = self.vision.detect_result_color(
                     self._rx, self._ry, self._rw, self._rh)
-                return result or "defeat"
+                result = result or "defeat"
+                if result == "victory":
+                    self._maybe_scan_trait_drop()
+                return result
 
             if self._see("lobby/shop_icon.png"):
                 return "unknown"
@@ -889,6 +930,92 @@ class GameBot:
         return False
 
     # ══════════════════════════════════════════════════════════════
+    # TRAIT FARM
+    # ══════════════════════════════════════════════════════════════
+
+    def set_trait_state(self, counts: dict, last_reset: str = ""):
+        """Load persisted per-stage trait progress on startup (no push —
+        nothing is listening yet)."""
+        self._trait_counts = {k: max(0, int(v)) for k, v in (counts or {}).items()}
+        self._trait_last_reset = last_reset or time.strftime("%Y-%m-%d", time.gmtime())
+
+    def set_trait_count(self, stage_key: str, count: int):
+        self._trait_counts[stage_key] = max(0, int(count))
+        self._push_trait_state()
+
+    def get_trait_state(self) -> dict:
+        stages = {key: {"count": self._trait_counts.get(key, 0), "limit": limit}
+                  for key, limit in TRAIT_STAGES}
+        info = self._trait_stage_info()
+        return {
+            "stages": stages,
+            "last_reset": self._trait_last_reset,
+            "tracking": bool(self._trait_track_current and info),
+            "current_key": info[0] if info else "",
+            "current_count": self._trait_counts.get(info[0], 0) if info else 0,
+            "current_limit": info[1] if info else 0,
+        }
+
+    def _push_trait_state(self):
+        if self.on_trait_update:
+            try:
+                self.on_trait_update(self.get_trait_state())
+            except Exception:
+                pass
+        self._push()
+
+    def _trait_stage_info(self) -> tuple[str, int] | None:
+        """Return (stage_key, limit) if the current task's stage tracks
+        trait drops, else None. Aizen/Ultimate Evil/The Eclipse cap at 100,
+        Garou caps at 30."""
+        if self._mode == "Challenge":
+            if self._challenge_type == "Garou":
+                return (TRAIT_KEY_GAROU, GAROU_LIMIT)
+            if self._challenge_type == "Aizen":
+                return (TRAIT_KEY_AIZEN, TRAIT_LIMIT)
+        elif self._mode == "Raid":
+            if self._raid_map_name == "GT" and self._raid_act_name == "The Ultimate Evil":
+                return (TRAIT_KEY_GT_ULTIMATE_EVIL, TRAIT_LIMIT)
+            if self._raid_map_name == "Eclipse" and self._raid_act_name == "The Eclipse":
+                return (TRAIT_KEY_ECLIPSE_THE_ECLIPSE, TRAIT_LIMIT)
+        return None
+
+    def _check_trait_reset(self):
+        """Trait limits reset at 7:00 GMT+7, which is exactly 00:00 UTC —
+        so a UTC calendar-day change is the reset signal."""
+        today = time.strftime("%Y-%m-%d", time.gmtime())
+        if self._trait_last_reset == today:
+            return
+        if self._trait_last_reset and any(v > 0 for v in self._trait_counts.values()):
+            self.log.log(f"Trait farm: daily reset ({self._trait_counts} -> all 0)")
+            self._trait_counts = {}
+        self._trait_last_reset = today
+        self._push_trait_state()
+
+    def _maybe_scan_trait_drop(self):
+        if not self._trait_track_current:
+            return
+        info = self._trait_stage_info()
+        if info is None:
+            return
+        key, limit = info
+        self._check_trait_reset()
+        count = self._trait_counts.get(key, 0)
+        if count >= limit:
+            return
+        hit = self.vision.find_best(list(TRAIT_DROP_IMGS), self._rx, self._ry,
+                                     self._rw, self._rh, TRAIT_DROP_THRESHOLD)
+        if not hit:
+            return
+        name, conf = hit
+        gained = 2 if "2_Trait" in name else 1
+        new_count = min(limit, count + gained)
+        self._trait_counts[key] = new_count
+        self.log.log(f"Trait farm [{key}]: +{gained} drop detected ({name}, conf={conf:.3f}) "
+                     f"-> {new_count}/{limit}")
+        self._push_trait_state()
+
+    # ══════════════════════════════════════════════════════════════
     # DISCONNECT & CRASH RECOVERY
     # ══════════════════════════════════════════════════════════════
 
@@ -1031,7 +1158,7 @@ class GameBot:
     def _notify(self, event: str):
         if not self._webhook_on or not self._webhook_url:
             return
-        if event not in ("DISCONNECTED", "ALL TASKS COMPLETE"):
+        if event not in ("DISCONNECTED", "ALL TASKS COMPLETE", "TRAIT LIMIT REACHED"):
             if self.runs == self._last_notified_run:
                 return
             self._last_notified_run = self.runs
@@ -1052,6 +1179,10 @@ class GameBot:
             "task_run_target": self._task_target,
             "total_runtime_s": int(time.monotonic() - self._session_start) if self._session_start else 0,
         }
+        trait_state = self.get_trait_state()
+        if trait_state["tracking"]:
+            ctx["trait_count"] = trait_state["current_count"]
+            ctx["trait_limit"] = trait_state["current_limit"]
         notify.send_webhook(self._webhook_url, ctx, self.vision,
                             self._rx, self._ry, self._rw, self._rh,
                             silent=self._webhook_silent,
@@ -1075,6 +1206,7 @@ class GameBot:
         diff_file = "difficulty/hard.png" if diff == "Hard" else "difficulty/normal.png"
         self._diff = diff
         self._detail = ""
+        self._trait_track_current = bool(t.get("track_trait", False))
 
         if self._mode == "Challenge":
             self._challenge_type = t.get("map", "Regular")
@@ -1087,6 +1219,8 @@ class GameBot:
             acts = RAID_ACT_BY_MAP.get(raid_map, {})
             self._raid_act = acts.get(act, list(acts.values())[0] if acts else "raid/hidden_danger.png")
             self._raid_diff = diff_file
+            self._raid_map_name = raid_map
+            self._raid_act_name = act
             self._detail = f"{raid_map} — {act}"
         elif self._mode == "Invasion":
             inv_map = t.get("map", "The Lava Continent")

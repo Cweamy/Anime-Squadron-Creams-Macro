@@ -148,6 +148,26 @@ class Screen:
                 return name, win_x + cx, win_y + cy
         return None
 
+    def find_best(self, img_names: list[str], win_x: int, win_y: int,
+                  win_w: int, win_h: int, threshold: float) -> tuple[str, float] | None:
+        """Match every candidate against one capture and return the highest-
+        confidence hit above threshold. Use when templates are near-identical
+        and first-match order would be unreliable. Ties keep list order."""
+        screenshot = self.capture(win_x, win_y, win_w, win_h)
+        if screenshot is None:
+            return None
+        best = None
+        for name in img_names:
+            template = self._load(os.path.join(ASSET_DIR, name))
+            if template is None:
+                continue
+            hit = self._match(screenshot, template, threshold)
+            if hit and (best is None or hit[2] > best[1]):
+                best = (name, hit[2])
+        if best:
+            self.logger.log(f"Screen: BEST {best[0]} conf={best[1]:.3f} th={threshold:.2f}")
+        return best
+
     def detect_result_color(self, rx: int, ry: int, rw: int, rh: int) -> str | None:
         sx = rx + int(rw * 0.20)
         sy = ry + int(rh * 0.28)

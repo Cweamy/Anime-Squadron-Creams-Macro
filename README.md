@@ -39,7 +39,8 @@
 - **Raid Maps** — GT (Hidden Danger, Saiyan Hunt, Ruler Dragon, The Ultimate Evil) and Eclipse (Golden Age 1–3, The Eclipse).
 - **Invasion** — The Lava Continent (Ashfall Continent, Infernal Landmass, Magma Rift, Scorched Horizon).
 - **Squadron/Story Maps** — GT City, Marine Lobby, Ninja Village, Eclipse — with up to 10 acts (Story) or 4 chapters (Squadron).
-- **Challenge Reward Scanner** — Automatically checks challenge rewards every 30 minutes. Select desired rewards (Stat Reroll, Trait Reroll) and the macro farms them until the slot resets. Priority mode leaves the current battle instantly when rewards refresh.
+- **Challenge Reward Scanner** — Automatically checks challenge rewards every 30 minutes. Select desired rewards (Stat Reroll, Trait Reroll, Gem) and the macro farms them until the slot resets. Priority mode leaves the current battle instantly when rewards refresh.
+- **Trait Farm Tracking** — Enable "Track Trait" per task to track daily trait drops for that stage (Aizen, Garou, GT — The Ultimate Evil, Eclipse — The Eclipse). Each stage has its own daily limit (Garou caps at 30, others at 100); once hit, the task is skipped automatically and resets daily at 00:00 UTC.
 - **Live Dashboard** — Win rate, run count, V/D stats, session timer, and task progress bar — all updating in real time.
 - **Log Viewer** — Built-in live log feed for debugging.
 - **Discord Webhooks** — Notifications with win/loss stats, battle time, task progress, session time, and optional screenshots (Roblox, fullscreen, or none).
@@ -95,6 +96,7 @@ Built-in presets for common farming setups:
 | Legendary Mats | Story GT/Marine/Ninja Ch.7 Hard ×10 each |
 | Epic Mats | Story GT/Marine/Ninja Ch.5 Hard ×10 each |
 | Rare Mats | Story GT/Marine/Ninja Ch.3 Hard ×10 each |
+| Ultimate Material Farm | Story Eclipse/GT/Marine/Ninja Ch.10 Hard ×15 each + GT/Marine/Ninja Ch.8 Hard ×10 each |
 
 Save your own custom loadouts and use the **Append** dropdown to stack multiple loadouts together.
 
@@ -120,14 +122,14 @@ git clone https://github.com/Cweamy/Anime-Squadron-Creams-Macro.git
 cd Anime-Squadron-Creams-Macro
 
 pip install -r requirements.txt
-pip install pyinstaller
+pip install nuitka
 
 # Generate embedded assets (only needed if you modify images in assets/)
 python generate_assets.py
 
 # Build exe
-python build.py
-# Output: dist/Anime Squadron Creams Macro.exe
+python build_nuitka.py
+# Output: dist-nuitka/Anime Squadron Creams Macro.exe
 ```
 
 ### Requirements

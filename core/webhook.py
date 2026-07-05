@@ -17,6 +17,7 @@ TITLES = {
     "REPLAY":               "🔄 Replaying Stage",
     "DISCONNECTED":         "⚠️ Disconnected — Reconnecting",
     "ALL TASKS COMPLETE":   "✅ All Tasks Complete",
+    "TRAIT LIMIT REACHED":  "🧬 Trait Limit Reached",
 }
 
 COLORS = {
@@ -28,6 +29,7 @@ COLORS = {
     "REPLAY":               0x42A5F5,
     "DISCONNECTED":         0xFF9800,
     "ALL TASKS COMPLETE":   0xC9D1D9,
+    "TRAIT LIMIT REACHED":  0xFFD700,
 }
 
 
@@ -122,6 +124,16 @@ def send_webhook(url: str, ctx: dict, screen: Screen,
             fields.append({
                 "name": "⏱️ Battle Time",
                 "value": f"```{_fmt_battle_time(dur_ms)}```",
+                "inline": True,
+            })
+
+        if "trait_count" in ctx and "trait_limit" in ctx:
+            tc_val = ctx["trait_count"]
+            tl_val = ctx["trait_limit"]
+            pct = round(tc_val / tl_val * 100) if tl_val else 0
+            fields.append({
+                "name": "🧬 Trait Progress",
+                "value": f"```{tc_val}/{tl_val} ({pct}%)```",
                 "inline": True,
             })
 
