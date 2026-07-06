@@ -697,6 +697,19 @@ label { display: block; margin-top: 4px; font-size: 12px; color: var(--text-dim)
   to   { opacity: 1; transform: translateY(0) scaleY(1); }
 }
 
+/* ══ Display Scale Warning Banner ══ */
+.scale-banner {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
+  background: linear-gradient(135deg, #3a2f1a, #35301c);
+  border: 1px solid #FFA65740;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  animation: bannerSlide .4s cubic-bezier(.4, 0, .2, 1);
+}
+.scale-banner span { font-size: 12px; font-weight: 600; color: #FFA657; }
+
 
 /* ══ Toast ══ */
 .toast {

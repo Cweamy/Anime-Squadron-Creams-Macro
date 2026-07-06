@@ -396,6 +396,18 @@
     <button id="btnUpdate" class="btn btn-sm btn-accent" onclick="doUpdate()">Update</button>
   </div>
 
+  <!-- Display Scale Warning -->
+  <div id="scaleBanner" class="scale-banner hidden">
+    <span id="scaleText">
+      <svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;vertical-align:-2px;margin-right:4px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span id="scaleTextMsg">Display scaling isn't 100% — Roblox may not dock at the right size.</span>
+    </span>
+    <div style="display:flex;gap:6px;flex:none">
+      <button class="btn btn-sm btn-accent" onclick="openDisplaySettings()">Fix Display Settings</button>
+      <button class="btn btn-sm btn-ghost" onclick="dismissScaleBanner()">Dismiss</button>
+    </div>
+  </div>
+
   <input type="hidden" id="txtWebhook">
   </div>
 

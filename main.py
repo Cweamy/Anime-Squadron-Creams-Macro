@@ -312,6 +312,15 @@ class Api:
         import webbrowser
         webbrowser.open("https://discord.gg/FwU6ppjKNf")
 
+    def get_display_scale(self) -> int:
+        return wm.get_display_scale_percent()
+
+    def open_display_settings(self):
+        try:
+            os.startfile("ms-settings:display")
+        except OSError:
+            pass
+
     def check_update(self) -> dict:
         result = check_for_update()
         return result if result else {}

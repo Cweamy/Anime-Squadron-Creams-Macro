@@ -13,6 +13,7 @@ _DEFAULTS = {
     "trait_farm": {"stages": {}, "last_reset": ""},
     "hotkeys": {"stop": "f2", "pause": "f3", "hide": "f4"},
     "tutorial_seen": False,
+    "scale_warning_dismissed": False,
 }
 
 # Storage (settings.json + the Loadouts folder) is only written to disk once

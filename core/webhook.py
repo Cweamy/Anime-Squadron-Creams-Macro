@@ -18,6 +18,7 @@ TITLES = {
     "DISCONNECTED":         "⚠️ Disconnected — Reconnecting",
     "ALL TASKS COMPLETE":   "✅ All Tasks Complete",
     "TRAIT LIMIT REACHED":  "🧬 Trait Limit Reached",
+    "ERROR":                "🛑 Macro Stopped — Error",
 }
 
 COLORS = {
@@ -30,6 +31,7 @@ COLORS = {
     "DISCONNECTED":         0xFF9800,
     "ALL TASKS COMPLETE":   0xC9D1D9,
     "TRAIT LIMIT REACHED":  0xFFD700,
+    "ERROR":                0xF44336,
 }
 
 

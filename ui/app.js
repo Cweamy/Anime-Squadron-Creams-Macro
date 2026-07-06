@@ -39,6 +39,7 @@ window.addEventListener('pywebviewready', async () => {
       for (const t of s.queue) addTask(t);
     }
     if (!s.tutorial_seen) openTutorialModal();
+    try { await checkDisplayScale(s.scale_warning_dismissed); } catch (e) {}
   } catch (e) { console.error('loadSettings', e); }
 
   try { await api().start_roblox_poll(); } catch (e) {}
@@ -989,6 +990,25 @@ async function checkForUpdate() {
 
 function onUpdateProgress(pct) {
   document.getElementById('btnUpdate').textContent = pct + '%';
+}
+
+// ── Display Scale Warning ──
+async function checkDisplayScale(alreadyDismissed) {
+  if (alreadyDismissed) return;
+  const scale = await api().get_display_scale();
+  if (scale === 100) return;
+  document.getElementById('scaleTextMsg').textContent =
+    `Display scaling is ${scale}%, not 100% — Roblox may not dock at the right size. Set it to 100% for best results.`;
+  document.getElementById('scaleBanner').classList.remove('hidden');
+}
+
+async function openDisplaySettings() {
+  try { await api().open_display_settings(); } catch (e) {}
+}
+
+async function dismissScaleBanner() {
+  document.getElementById('scaleBanner').classList.add('hidden');
+  try { await api().save_settings_full({ scale_warning_dismissed: true }); } catch (e) {}
 }
 
 async function doUpdate() {

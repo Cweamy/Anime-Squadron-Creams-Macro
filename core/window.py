@@ -38,6 +38,19 @@ def set_dpi_aware():
         pass
 
 
+def get_display_scale_percent() -> int:
+    """Current Windows display scaling as a percent (100 = no scaling).
+
+    Roblox is docked at a hardcoded pixel size (FIXED_WIN_W/H); anything
+    other than 100% scaling can make the two processes disagree on what a
+    "pixel" is, so the docked game can end up the wrong size on screen.
+    """
+    try:
+        return round(user32.GetDpiForSystem() / 96 * 100)
+    except (OSError, AttributeError):
+        return 100
+
+
 def get_process_name(hwnd: int) -> str:
     """Get the executable name for a window's owning process."""
     pid = wt.DWORD()

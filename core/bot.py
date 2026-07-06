@@ -2,6 +2,7 @@ import os
 import time
 import threading
 import subprocess
+import traceback
 from enum import Enum
 
 from core.constants import (
@@ -266,18 +267,33 @@ class GameBot:
 
     def _worker(self, queue: list[dict]):
         self._task_total = len(queue)
+        consecutive_errors = 0
         try:
             while not self._halt.is_set():
                 for idx, task in enumerate(queue):
                     if self._halt.is_set():
                         return
                     self._task_idx = idx
-                    self._run_task(task)
+                    try:
+                        self._run_task(task)
+                        consecutive_errors = 0
+                    except Exception:
+                        consecutive_errors += 1
+                        self.log.log(
+                            f"Task error ({consecutive_errors}/3) — this stage will be "
+                            f"retried unless it keeps happening:\n{traceback.format_exc()}"
+                        )
+                        self._notify("ERROR")
+                        if consecutive_errors >= 3:
+                            self.log.log("3 errors in a row — stopping the queue")
+                            return
+                        self._sleep(2)
                 if not self._loop_queue:
                     break
             self._notify("ALL TASKS COMPLETE")
-        except Exception as e:
-            self.log.log(f"Worker error: {e}")
+        except Exception:
+            self.log.log(f"Worker error — macro stopped:\n{traceback.format_exc()}")
+            self._notify("ERROR")
         finally:
             self.active = False
             self._phase = "idle"
@@ -1242,7 +1258,7 @@ class GameBot:
     def _notify(self, event: str):
         if not self._webhook_on or not self._webhook_url:
             return
-        if event not in ("DISCONNECTED", "ALL TASKS COMPLETE", "TRAIT LIMIT REACHED"):
+        if event not in ("DISCONNECTED", "ALL TASKS COMPLETE", "TRAIT LIMIT REACHED", "ERROR"):
             if self.runs == self._last_notified_run:
                 return
             self._last_notified_run = self.runs
