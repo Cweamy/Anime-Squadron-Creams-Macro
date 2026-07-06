@@ -180,6 +180,14 @@ def press_key(vk: int):
     user32.keybd_event(vk, 0, 0x0002, 0)  # KEYEVENTF_KEYUP
 
 
+def key_down(vk: int):
+    user32.keybd_event(vk, 0, 0, 0)
+
+
+def key_up(vk: int):
+    user32.keybd_event(vk, 0, 0x0002, 0)  # KEYEVENTF_KEYUP
+
+
 def send_key_to_window(hwnd: int, vk: int):
     user32.PostMessageW(hwnd, WM_KEYDOWN, vk, 0)
     user32.PostMessageW(hwnd, WM_KEYUP, vk, 0)

@@ -32,7 +32,7 @@
   <img src="preview.png" alt="Cream's Macro — Anime Squadron farming tool with Roblox docked into the macro window" width="800">
 </p>
 
-Cream's Macro is a free Windows app that automates farming in **Anime Squadron** on Roblox — Story, Raid, Invasion, Squadron, and Challenge modes. Queue up tasks, hit Start, and let it grind gold, materials, and trait rerolls while you do something else. It works purely by *looking* at the screen (like a very fast player), not by touching the game's memory.
+Cream's Macro is a free Windows app that automates farming in **Anime Squadron** on Roblox — Story, Raid, Invasion, Squadron, Challenge, Event (Boros), and Infinite modes. Queue up tasks, hit Start, and let it grind gold, materials, and trait rerolls while you do something else. It works purely by *looking* at the screen (like a very fast player), not by touching the game's memory.
 
 ## Download & Install
 
@@ -52,17 +52,21 @@ On first launch, the macro asks permission before creating anything on disk — 
 - **Task Queue** — Queue multiple farming tasks with drag-and-drop reordering, removal, and looping support.
 - **Quick Material Farm** — Pick a map (GT City, Marine Lobby, Ninja Village, Eclipse, or The Ice Continent) and click **Quick Material Farm**: it auto-builds 5 tasks (Story Chapters 2/4/6/8/10, Hard, ×15 each) and enables Loop — instant material farming, no manual queue building.
 - **Loadouts** — Save your own custom loadouts, stack them with the **Append** dropdown, and use the built-in **Gold & Trait Farm** preset. Export any loadout to a `.json` file or import one shared by a friend.
-- **Game Modes** — Challenge, Raid, Invasion, Squadron, and Story with full stage/map/chapter/difficulty selection.
+- **Game Modes** — Challenge, Raid, Invasion, Squadron, Story, Event (Boros), and Infinite, with full stage/map/chapter/difficulty selection where applicable.
 - **Raid Maps** — GT (Hidden Danger, Saiyan Hunt, Ruler Dragon, The Ultimate Evil) and Eclipse (Golden Age 1–3, The Eclipse).
 - **Invasion** — The Lava Continent (Ashfall Continent, Infernal Landmass, Magma Rift, Scorched Horizon).
 - **Squadron/Story Maps** — GT City, Marine Lobby, Ninja Village, Eclipse, plus The Ice Continent (Story) — up to 10 chapters (Story) or 4 chapters (Squadron).
-- **Challenge Reward Scanner** — Automatically checks challenge rewards every 30 minutes. Select desired rewards (Stat Reroll, Trait Reroll, Gem) and the macro farms them until the slot resets. Priority mode leaves the current battle instantly when rewards refresh.
+- **Event (Boros)** — Fully vision-based: opens the event icon, presses Play and Find Match, then farms battles automatically. Replays on a win; leaves cleanly on a loss (no in-place replay after a loss in this mode) — and if a Retry/Replay button ever gets stuck on screen for 10 seconds without going away, it backs out via Leave instead of hammering a dead button.
+- **Infinite Farming** — Presses Play, leaves to warp to a fixed spawn point, walks straight for ~6 seconds to reach the portal, then presses Play again to queue up. Rounds are picked and replayed normally after that, same as every other mode.
+- **Challenge Reward Scanner** — Automatically checks challenge rewards every 30 minutes. Select desired rewards (Stat Reroll, Trait Reroll, Gem) and the macro farms them until the slot resets. Priority mode leaves the current battle instantly when rewards refresh. Toggling Enabled/Priority/rewards applies immediately, even mid-run — no need to stop and restart the queue.
 - **Trait Farm Tracking** — Enable "Track Trait" per task to track daily trait drops for that stage (Aizen, Garou, GT — The Ultimate Evil, Eclipse — The Eclipse). Each stage has its own daily limit (Garou caps at 30, others at 100); once hit, the task is skipped automatically and resets daily at 00:00 UTC.
 - **Live Dashboard** — Win rate, run count, V/D stats, session timer, and task progress bar — all updating in real time.
 - **Interactive Tutorial** — A built-in step-by-step "How to Use" walkthrough opens on first launch and can be reopened anytime via the **?** icon in the header.
 - **Log Viewer** — Built-in live log feed for debugging.
 - **Discord Webhooks** — Notifications with win/loss stats, battle time, task progress, session time, and optional screenshots (Roblox, fullscreen, or none).
 - **Auto Reconnect** — Detects disconnects and crashes, automatically rejoins via deep link. If nothing on screen is recognized for 3 minutes straight (slow-but-working navigation doesn't count), it forces a rejoin anyway; after 3 such cycles it kills Roblox and relaunches it fresh.
+- **Crash Resilience** — Full error tracebacks are logged and a Discord webhook fires (🛑 Macro Stopped — Error) if the macro ever hits an unexpected crash, instead of silently going idle with no explanation. A single bad task retries up to 3 times before the queue gives up, so one hiccup doesn't end an entire farming session.
+- **Display Scale Warning** — Detects non-100% Windows display scaling (a common cause of Roblox docking at the wrong size) and shows a one-click button to jump straight to Display Settings.
 - **Auto Update** — Checks GitHub Releases on startup with one-click update.
 - **Docked UI** — Roblox docks directly into the macro panel for a clean single-window experience — no alt-tabbing.
 - **Instant Stop** — Press `F2` or click Stop to halt immediately, even mid-battle.
@@ -87,8 +91,19 @@ On first launch, the macro asks permission before creating anything on disk — 
 | **Squadron** | GT City, Marine Lobby, Ninja Village, Eclipse | Chapter 1–4 |
 | **Story** | GT City, Marine Lobby, Ninja Village, Eclipse, The Ice Continent | Chapter 1–10 |
 | **Challenge** | Regular, Aizen, Garou | Normal / Hard (Aizen & Garou) |
+| **Event (Boros)** | — | No map/chapter — just Play + Find Match |
+| **Infinite** | — | No map/chapter — Play, warp, walk to the portal, Play |
 
-Each task supports Normal or Hard difficulty and any repeat count. Enable **Loop** to restart the queue after all tasks finish.
+Each task supports Normal or Hard difficulty and any repeat count (where applicable — Event and Infinite have no map/chapter/difficulty selection since they don't use the stage-select menu). Enable **Loop** to restart the queue after all tasks finish.
+
+### Event (Boros) & Infinite Farming
+
+Both of these skip the usual stage-select menu entirely and are handled purely by vision:
+
+- **Event (Boros)** — finds the event icon in the lobby and opens it (this can take a moment since the icon animates), presses **Play**, then **Find Match**, and farms battles from there. A win replays normally; a loss clicks **Leave** instead of trying to replay, since Boros has no in-place replay after a loss — the next run just re-opens the event from scratch.
+- **Infinite Farming** — presses **Play**, then **Leave** (this warps your character to a fixed spawn point), holds **W** for about 6 seconds to walk to the portal, then presses **Play** again to queue in. After that it picks rounds and replays normally like any other mode.
+
+For both modes, if a Retry/Replay button ever gets stuck on screen for 10 seconds without disappearing, the macro clicks **Leave** instead of continuing to click a button that isn't doing anything — this applies to every mode, not just these two.
 
 ### Quick Material Farm
 

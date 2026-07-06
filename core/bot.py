@@ -372,7 +372,14 @@ class GameBot:
 
             if self._should_check_rewards():
                 self._do_challenge_check()
+            elif self._mode == "Event" and outcome == "defeat":
+                # Boros/Event has no in-place replay after a loss — Leave is
+                # the only real option, and the next run re-does the full
+                # Event icon -> Play -> Find Match sequence from the lobby.
+                self._leave_results()
             else:
+                # Infinite picks rounds normally like every other mode, so
+                # it just uses the regular Retry/Replay flow here.
                 self._replay_or_retry()
 
     # ══════════════════════════════════════════════════════════════
@@ -423,6 +430,13 @@ class GameBot:
     # ══════════════════════════════════════════════════════════════
 
     def _navigate_to_battle(self):
+        if self._mode == "Event":
+            self._navigate_event_to_battle()
+            return
+        if self._mode == "Infinite":
+            self._navigate_infinite_to_battle()
+            return
+
         self._phase = "scanning"
         self._push()
         hint = ""
@@ -477,6 +491,134 @@ class GameBot:
             else:
                 self.log.log(f"Nav [{attempt+1}/30]: UNKNOWN - no images matched")
                 self._sleep(0.3)
+
+    def _navigate_event_to_battle(self):
+        """Boros/Event mode has no stage-select menu — it's Lobby → Event
+        icon → Play → Find Match, straight into a battle. If a run kicks
+        back to the lobby instead of offering the usual Retry/Replay
+        buttons, the next call to this just re-does the same sequence from
+        scratch, so no special "returned to lobby" handling is needed here.
+
+        This is a strict pipeline, not a flat "check everything every loop"
+        scan — each step only ever looks for its own image, so once we've
+        moved past the event icon it's never checked again. Re-checking it
+        every iteration used to mean a stale/false match on a later screen
+        (Play menu, etc.) could hijack a click that should've gone to the
+        next step instead.
+        """
+        self._phase = "scanning"
+        self._push()
+
+        for _ in range(10):
+            if self._halt.is_set():
+                return
+            self._refresh_bounds()
+            self._check_stuck_watchdog()
+            if self._handle_disconnect():
+                continue
+            if self._see("battle/team.png"):
+                self._note_progress()
+                return
+            if self._leave_stage_menu():
+                continue
+            break
+
+        if not self._wait_and_click("boros/boros.png", "event icon", toggle_tab=True):
+            return
+        if not self._wait_and_click("boros/boros_play.png", "Play"):
+            return
+        self._wait_and_click("room/find_match.png", "Find Match")
+
+    def _navigate_infinite_to_battle(self):
+        """Infinite Farming has no stage-select menu either: Lobby -> Play ->
+        Leave (this warps you to a fixed spawn point) -> walk straight for
+        ~6s to reach the portal -> Play (inf/play_inf.png) at the portal,
+        straight into a battle. Same self-healing idea as Event: if a run
+        ends up back at the lobby, the next call just redoes the whole
+        sequence from scratch.
+        """
+        self._phase = "scanning"
+        self._push()
+
+        for _ in range(10):
+            if self._halt.is_set():
+                return
+            self._refresh_bounds()
+            self._check_stuck_watchdog()
+            if self._handle_disconnect():
+                continue
+            if self._see("battle/team.png"):
+                self._note_progress()
+                return
+            if self._leave_stage_menu():
+                continue
+            break
+
+        if not self._wait_and_click("lobby/play.png", "Play"):
+            return
+        if not self._wait_and_click("room/leave.png", "Leave (warp to portal)"):
+            return
+
+        self.log.log("Infinite: walking to the portal (holding W ~6s)")
+        self._walk_forward(6.0)
+
+        self._wait_and_click("inf/play_inf.png", "Infinite Play")
+
+    def _walk_forward(self, seconds: float):
+        VK_W = 0x57
+        wm.key_down(VK_W)
+        try:
+            self._sleep(seconds)
+        finally:
+            wm.key_up(VK_W)
+
+    def _wait_and_click(self, image: str, label: str, toggle_tab: bool = False, timeout: float = 8.0) -> bool:
+        """Wait for a single flow-step image and click it once found."""
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            if self._halt.is_set():
+                return False
+            self._refresh_bounds()
+            if self._handle_disconnect():
+                continue
+            pos = self._see(image)
+            if pos:
+                self.log.log(f"Event: clicking {label}")
+                self._tap(pos, times=2, gap=150)
+                self._sleep(1.2)
+                self._note_progress()
+                return True
+            if toggle_tab:
+                # Tab toggles the player list, and detecting whether it's
+                # open wasn't reliable — so just toggle it every failed
+                # attempt instead. Whichever state actually has it closed,
+                # the event icon becomes visible; the other state just costs
+                # one wasted attempt before the next toggle flips it back.
+                wm.press_key(0x09)  # VK_TAB
+                self._sleep(0.2)
+            else:
+                self._sleep(0.3)
+        self.log.log(f"Event: couldn't find {label} within {timeout}s")
+        return False
+
+    def _leave_stage_menu(self) -> bool:
+        """A previous Challenge/Raid/Squadron/Story/Invasion task can leave
+        its Create Room stage-select panel (tabs, Friends Only toggle, etc.)
+        open on top of the lobby. That both hides the real Event icon and
+        gives vision something else in the same corner to false-match at a
+        relaxed threshold, so back out of it before hunting for Event/Play/
+        Find Match. Returns True if it just clicked (caller should re-scan).
+        """
+        if not self.vision.find_first(list(STAGE_TABS), self._rx, self._ry, self._rw, self._rh):
+            return False
+        pos = self._see("room/leave.png")
+        if pos:
+            self.log.log("Event: stage-select menu still open — leaving it first")
+            self._tap(pos, times=2, gap=100, jitter=False)
+            self._sleep(0.8)
+            return True
+        self._sleep(0.3)
+        return True
 
     def _open_stage_menu(self):
         self._phase = "opening_menu"
@@ -781,8 +923,12 @@ class GameBot:
     def _replay_or_retry(self):
         self._phase = "post_battle"
         self._push()
+        deadline = time.monotonic() + 10.0
 
-        for _ in range(8):
+        while time.monotonic() < deadline:
+            if self._halt.is_set():
+                return
+
             pos = self._see("results/retry.png")
             if pos:
                 self._tap(pos, times=2, gap=60, jitter=False)
@@ -794,13 +940,21 @@ class GameBot:
             pos = self._see("results/replay.png")
             if pos:
                 self._tap(pos, times=2, gap=60, jitter=False)
-                self._sleep(0.5)
-                return
+                self._sleep(1.0)
+                if not self._see("results/replay.png"):
+                    return
+                continue
 
             if self._see("room/start.png") or self._see("battle/team.png"):
                 return
 
             self._sleep(0.3)
+
+        # Retry/Replay was clicked but the button never actually went away
+        # for a full 10s — treat it as stuck and back out via Leave instead
+        # of hammering a button that isn't doing anything.
+        self.log.log("Replay/Retry stuck for 10s — clicking Leave instead")
+        self._leave_results()
 
     def _leave_results(self):
         for _ in range(5):
@@ -1344,3 +1498,7 @@ class GameBot:
             self._st_chap = int(chap_str.replace("Chapter ", "")) if "Chapter" in chap_str else 1
             self._st_diff = diff_file
             self._detail = f"{story} Ch.{self._st_chap}"
+        elif self._mode == "Event":
+            self._detail = "Boros Event"
+        elif self._mode == "Infinite":
+            self._detail = "Infinite Farming"

@@ -349,6 +349,8 @@ function addTask(preset) {
         <option ${mode==='Invasion'?'selected':''}>Invasion</option>
         <option ${mode==='Squadron'?'selected':''}>Squadron</option>
         <option ${mode==='Story'?'selected':''}>Story</option>
+        <option ${mode==='Event'?'selected':''}>Event</option>
+        <option ${mode==='Infinite'?'selected':''}>Infinite</option>
       </select>
       <div class="rep-group">
         ×<input type="number" class="tRep" value="${rep}" min="1">

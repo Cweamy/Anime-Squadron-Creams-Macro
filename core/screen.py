@@ -23,23 +23,46 @@ class Screen:
         if path in self._tmpl_cache:
             return self._tmpl_cache[path]
 
-        img = None
+        raw_img = None
         rel = os.path.relpath(path, ASSET_DIR).replace("\\", "/")
         if rel in _EMBEDDED:
             raw = base64.b64decode(_EMBEDDED[rel])
             arr = np.frombuffer(raw, dtype=np.uint8)
-            img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+            raw_img = cv2.imdecode(arr, cv2.IMREAD_UNCHANGED)
 
-        if img is None and os.path.exists(path):
-            img = cv2.imread(path, cv2.IMREAD_COLOR)
+        if raw_img is None and os.path.exists(path):
+            raw_img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
 
-        if img is None:
+        if raw_img is None:
             self.logger.log(f"Screen: ASSET NOT FOUND - {rel}")
             return None
 
+        img, mask = self._split_alpha(raw_img)
+
         self._tmpl_cache[path] = img
-        self._mask_cache[path] = self._build_mask(img)
+        self._mask_cache[path] = mask
         return img
+
+    def _split_alpha(self, raw_img: np.ndarray) -> tuple[np.ndarray, np.ndarray | None]:
+        """cv2.imread(..., IMREAD_COLOR) silently drops the alpha channel and
+        keeps whatever RGB was underneath it — for PNGs with a transparent
+        background that's usually garbage, not black, so the old black-pixel
+        mask heuristic never triggered for them. Read with IMREAD_UNCHANGED
+        instead and build the mask from the real alpha channel when present.
+        """
+        if raw_img.ndim == 2:
+            return cv2.cvtColor(raw_img, cv2.COLOR_GRAY2BGR), None
+
+        if raw_img.shape[2] == 4:
+            bgr = raw_img[:, :, :3].copy()
+            alpha = raw_img[:, :, 3]
+            _, mask = cv2.threshold(alpha, 10, 255, cv2.THRESH_BINARY)
+            bgr[mask == 0] = 0
+            if cv2.countNonZero(mask) >= mask.size:
+                return bgr, None  # fully opaque — no mask needed
+            return bgr, mask
+
+        return raw_img, self._build_mask(raw_img)
 
     def _build_mask(self, template: np.ndarray) -> np.ndarray | None:
         gray = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
