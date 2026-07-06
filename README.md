@@ -62,7 +62,7 @@ On first launch, the macro asks permission before creating anything on disk — 
 - **Interactive Tutorial** — A built-in step-by-step "How to Use" walkthrough opens on first launch and can be reopened anytime via the **?** icon in the header.
 - **Log Viewer** — Built-in live log feed for debugging.
 - **Discord Webhooks** — Notifications with win/loss stats, battle time, task progress, session time, and optional screenshots (Roblox, fullscreen, or none).
-- **Auto Reconnect** — Detects disconnects and crashes, automatically rejoins via deep link.
+- **Auto Reconnect** — Detects disconnects and crashes, automatically rejoins via deep link. If nothing on screen is recognized for 2 minutes straight, it forces a rejoin anyway; after 3 such cycles it kills Roblox and relaunches it fresh.
 - **Auto Update** — Checks GitHub Releases on startup with one-click update.
 - **Docked UI** — Roblox docks directly into the macro panel for a clean single-window experience — no alt-tabbing.
 - **Instant Stop** — Press `F2` or click Stop to halt immediately, even mid-battle.

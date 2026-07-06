@@ -1,6 +1,7 @@
 import os
 import time
 import threading
+import subprocess
 from enum import Enum
 
 from core.constants import (
@@ -9,6 +10,7 @@ from core.constants import (
     SQUAD_STORY_MAP, SQUAD_CHAP_MAP,
     TRAIT_LIMIT, GAROU_LIMIT, TRAIT_STAGES, TRAIT_DROP_IMGS, TRAIT_DROP_THRESHOLD,
     TRAIT_KEY_AIZEN, TRAIT_KEY_GAROU, TRAIT_KEY_GT_ULTIMATE_EVIL, TRAIT_KEY_ECLIPSE_THE_ECLIPSE,
+    DISCONNECT_IMGS, STUCK_REJOIN_TIMEOUT_S, STUCK_MAX_REJOINS,
 )
 from core.screen import Screen
 from core.mouse import Mouse
@@ -75,6 +77,10 @@ class GameBot:
         self._rx = self._ry = 0
         self._rw = FIXED_WIN_W
         self._rh = FIXED_WIN_H
+
+        # Stuck-recovery watchdog (see _check_stuck_watchdog)
+        self._stuck_since: float | None = None
+        self._stuck_rejoins = 0
 
         # Config (set per queue)
         self._webhook_url = ""
@@ -159,6 +165,8 @@ class GameBot:
         self._session_start = time.monotonic()
         self._last_refresh_slot = -1
         self._last_notified_run = -1
+        self._stuck_since = None
+        self._stuck_rejoins = 0
 
         self.active = True
         self._halt.clear()
@@ -186,6 +194,7 @@ class GameBot:
             self.paused = False
             self._pause.set()
             self._phase = "resuming"
+            self._stuck_since = None  # don't count paused time toward the stuck watchdog
             self._push()
 
     def get_info(self) -> dict:
@@ -355,15 +364,21 @@ class GameBot:
     # ══════════════════════════════════════════════════════════════
 
     def _read_scene(self, hint: str = "") -> Scene:
-        """Identify current screen with a single capture."""
+        """Identify current screen with a single capture.
+
+        Disconnect dialogs are checked first, ahead of every other template —
+        otherwise a look-alike (e.g. "results/retry.png") can win the match
+        and the bot ends up clicking the wrong button while actually
+        disconnected, instead of reconnecting.
+        """
         if hint == "post_lobby":
-            order = ["lobby/create_room.png", *STAGE_TABS, "lobby/shop_icon.png"]
+            order = [*DISCONNECT_IMGS, "lobby/create_room.png", *STAGE_TABS, "lobby/shop_icon.png"]
         else:
             order = [
+                *DISCONNECT_IMGS,
                 "lobby/shop_icon.png", "lobby/create_room.png", *STAGE_TABS,
                 "room/start.png", "battle/team.png",
                 "results/replay.png", "results/retry.png",
-                "system/reconnect.png", "system/retry.png",
             ]
 
         hit = self.vision.find_first(order, self._rx, self._ry, self._rw, self._rh)
@@ -371,6 +386,8 @@ class GameBot:
             return Scene.UNKNOWN
 
         name = hit[0]
+        if name in DISCONNECT_IMGS:
+            return Scene.DISCONNECTED
         if name == "lobby/shop_icon.png":
             return Scene.LOBBY
         if name == "lobby/create_room.png":
@@ -383,8 +400,6 @@ class GameBot:
             return Scene.BATTLING
         if name in ("results/replay.png", "results/retry.png"):
             return Scene.RESULTS
-        if name in ("system/reconnect.png", "system/retry.png"):
-            return Scene.DISCONNECTED
         return Scene.UNKNOWN
 
     # ══════════════════════════════════════════════════════════════
@@ -402,6 +417,8 @@ class GameBot:
             self._refresh_bounds()
             self.log.log(f"Nav [{attempt+1}/30]: bounds=({self._rx},{self._ry},{self._rw},{self._rh}) hint={hint}")
 
+            self._check_stuck_watchdog()
+
             if self._handle_disconnect():
                 continue
 
@@ -418,17 +435,21 @@ class GameBot:
                 self._open_stage_menu()
             elif scene == Scene.STAGE_SELECT:
                 self.log.log("Nav: → select_and_start")
+                self._note_progress()
                 self._select_and_start()
                 return
             elif scene == Scene.IN_ROOM:
                 self.log.log("Nav: → click_start")
+                self._note_progress()
                 self._click_start()
                 return
             elif scene == Scene.BATTLING:
                 self.log.log("Nav: → already in battle")
+                self._note_progress()
                 return
             elif scene == Scene.RESULTS:
                 self.log.log("Nav: → replay_or_retry")
+                self._note_progress()
                 self._replay_or_retry()
                 return
             elif scene == Scene.DISCONNECTED:
@@ -725,6 +746,7 @@ class GameBot:
 
             if self._see("battle/team.png"):
                 idle_since = 0
+                self._note_progress()  # actively battling — a long fight isn't "stuck"
                 self._sleep(0.1)
                 continue
 
@@ -1020,14 +1042,15 @@ class GameBot:
     # ══════════════════════════════════════════════════════════════
 
     def _handle_disconnect(self) -> bool:
-        pos = self._see("system/reconnect.png") or self._see("system/retry.png")
-        if not pos:
+        hit = self.vision.find_first(list(DISCONNECT_IMGS), self._rx, self._ry, self._rw, self._rh)
+        if not hit:
             return False
-        self.log.log("Disconnect detected")
+        name, x, y = hit
+        self.log.log(f"Disconnect detected ({name})")
         self._notify("DISCONNECTED")
-        self._tap(pos)
+        self._tap((x, y))
         self._sleep(3)
-        if self._see("system/reconnect.png") or self._see("system/retry.png"):
+        if self.vision.find_first(list(DISCONNECT_IMGS), self._rx, self._ry, self._rw, self._rh):
             self.log.log("Reconnect failed — rejoining via deep link")
             self.rejoin()
         return True
@@ -1039,6 +1062,64 @@ class GameBot:
         self._hwnd = 0
         self.launch_game()
         self._sleep(5)
+        self._poll_for_game(90)
+        self._dock_game()
+
+    def _note_progress(self):
+        """Call whenever navigation genuinely advances — resets the stuck
+        watchdog so a long (but healthy) battle or menu flow never falsely
+        triggers a rejoin/restart."""
+        self._stuck_since = None
+        self._stuck_rejoins = 0
+
+    def _check_stuck_watchdog(self) -> bool:
+        """Escalating recovery for when nothing recognizable is on screen
+        and navigation hasn't made progress in a while (e.g. an unrecognized
+        dialog, or a reconnect that silently failed). Every STUCK_REJOIN_TIMEOUT_S
+        with zero progress forces a deep-link rejoin; after STUCK_MAX_REJOINS
+        such cycles in a row, kill Roblox and relaunch it fresh instead."""
+        now = time.monotonic()
+        if self._stuck_since is None:
+            self._stuck_since = now
+            return False
+        if now - self._stuck_since < STUCK_REJOIN_TIMEOUT_S:
+            return False
+
+        self._stuck_since = now
+        self._stuck_rejoins += 1
+        if self._stuck_rejoins >= STUCK_MAX_REJOINS:
+            self.log.log(
+                f"Stuck for {STUCK_REJOIN_TIMEOUT_S}s x{self._stuck_rejoins} — hard restart")
+            self._stuck_rejoins = 0
+            self._hard_restart()
+        else:
+            self.log.log(
+                f"Stuck for {STUCK_REJOIN_TIMEOUT_S}s with no progress — "
+                f"forcing rejoin ({self._stuck_rejoins}/{STUCK_MAX_REJOINS})")
+            self.rejoin()
+        return True
+
+    def _hard_restart(self):
+        """Last-resort recovery: a deep-link rejoin only helps if Roblox's
+        client is still alive and responsive. If several rejoins in a row
+        haven't fixed anything, kill the Roblox process outright and launch
+        it fresh."""
+        self.log.log("Hard restart: killing Roblox and relaunching")
+        self._notify("DISCONNECTED")
+        proc_name = wm.get_process_name(self._hwnd) if self._hwnd else ""
+        proc_name = proc_name or "RobloxPlayerBeta.exe"
+        try:
+            subprocess.run(
+                ["taskkill", "/F", "/IM", proc_name],
+                capture_output=True, timeout=10,
+            )
+        except (OSError, subprocess.SubprocessError):
+            pass
+        self._docked = False
+        self._hwnd = 0
+        self._sleep(2)
+        self.launch_game()
+        self._sleep(8)
         self._poll_for_game(90)
         self._dock_game()
 

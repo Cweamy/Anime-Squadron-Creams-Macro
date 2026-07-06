@@ -27,6 +27,21 @@ CLICK_DELAY_MS = 50
 IMG_THRESHOLD = 0.80
 IMG_THRESHOLD_STRICT = 0.88
 IMG_THRESHOLD_RELAXED = 0.70
+
+# Disconnect / reconnect dialog variants — checked in this order (first match
+# wins), so any dialog that overlaps another template's look still resolves
+# to "disconnected" instead of being misread as e.g. a results screen.
+DISCONNECT_IMGS = (
+    "system/reconnect.png",
+    "system/reconnect_2.png",
+    "system/retry.png",
+)
+
+# Stuck-recovery watchdog: if navigation makes no progress at all for this
+# long, force a deep-link rejoin; after this many such cycles in a row with
+# still no progress, kill Roblox and relaunch it fresh instead.
+STUCK_REJOIN_TIMEOUT_S = 120
+STUCK_MAX_REJOINS = 3
 MAX_STATE_RETRIES = 20
 REFRESH_INTERVAL_MS = 1800000  # 30 minutes
 
