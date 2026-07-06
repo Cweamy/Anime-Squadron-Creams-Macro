@@ -27,7 +27,15 @@ jobs:
             dist-nuitka/main.build
             dist-nuitka/main.dist
             dist-nuitka/main.onefile-build
-          key: nuitka-${{ runner.os }}-${{ hashFiles('main.py', 'core/*.py', 'build_nuitka.py') }}
+          # Keyed on requirements.txt, not main.py/core/*.py — those change on
+          # almost every release, which used to mint a brand-new cache entry
+          # every single build instead of reusing/updating one. Nuitka does
+          # its own incremental recompile within main.build across runs, so
+          # restoring the last build's intermediate objects (even though our
+          # own source changed) still lets it skip rebuilding the untouched
+          # dependency code (numpy, opencv wrapper, pywebview, etc.) — only
+          # this key needs to change when the actual dependency set changes.
+          key: nuitka-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
           restore-keys: nuitka-${{ runner.os }}-
 
       - name: Install dependencies

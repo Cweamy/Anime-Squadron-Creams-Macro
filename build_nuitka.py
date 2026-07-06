@@ -24,6 +24,12 @@ NOFOLLOW = [
     "webview.platforms.cef", "webview.platforms.gtk",
     "webview.platforms.cocoa", "webview.platforms.android",
     "webview.platforms.mshtml",
+    # numpy ships its own build-tooling/test/docs submodules under its own
+    # namespace (the generic "distutils"/"test" entries above only match
+    # top-level packages, not numpy.*) — these are pure dead weight for an
+    # app that only does array math and template matching.
+    "numpy.distutils", "numpy.f2py", "numpy.testing", "numpy.tests",
+    "numpy.array_api", "numpy.doc",
 ]
 
 # Prebuilt DLLs pulled in by dependencies that our usage never exercises.
@@ -60,10 +66,20 @@ cmd = [
     "--python-flag=no_asserts",
     "--python-flag=no_docstrings",
     "--lto=no",
+    f"--jobs={os.cpu_count() or 4}",   # parallelize the C compile across all cores
     "--assume-yes-for-downloads",
     f"--output-filename={EXE_NAME}",
     "--output-dir=dist-nuitka",
 ]
+
+# On CI, windows-latest already ships a full MSVC toolchain — telling
+# Nuitka to use it skips downloading + extracting MinGW64 from scratch,
+# which by itself can take a couple of minutes on a cold runner. Local
+# dev machines may not have MSVC installed, so only force this in CI;
+# elsewhere Nuitka keeps its normal auto-detect (MSVC if present, else
+# download MinGW64).
+if os.environ.get("GITHUB_ACTIONS") == "true":
+    cmd.append("--msvc=latest")
 
 for mod in INCLUDE_MODULES:
     cmd += [f"--include-module={mod}"]
