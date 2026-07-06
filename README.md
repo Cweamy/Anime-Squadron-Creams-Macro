@@ -1,12 +1,13 @@
 <p align="center">
-  <img src="logo.png" width="120" alt="Cream's Macro">
+  <img src="logo.png" width="120" alt="Cream's Macro — Anime Squadron auto farm macro logo">
 </p>
 
-<h1 align="center">Cream's Macro — Anime Squadron</h1>
+<h1 align="center">Cream's Macro — Anime Squadron Auto Farm</h1>
 
 <p align="center">
-  <strong>Auto-farming macro for Roblox Anime Squadron</strong><br>
-  Built with Python, OpenCV, and pywebview
+  <strong>Free auto-farming macro / bot for Roblox Anime Squadron</strong><br>
+  Vision-based (screen capture + OpenCV) — no injection, no memory reading.<br>
+  Built with Python, OpenCV, and pywebview.
 </p>
 
 <p align="center">
@@ -28,38 +29,53 @@
 ---
 
 <p align="center">
-  <img src="preview.png" alt="Cream's Macro Preview" width="800">
+  <img src="preview.png" alt="Cream's Macro — Anime Squadron farming tool with Roblox docked into the macro window" width="800">
 </p>
+
+Cream's Macro is a free Windows app that automates farming in **Anime Squadron** on Roblox — Story, Raid, Invasion, Squadron, and Challenge modes. Queue up tasks, hit Start, and let it grind gold, materials, and trait rerolls while you do something else. It works purely by *looking* at the screen (like a very fast player), not by touching the game's memory.
+
+## Download & Install
+
+No installer, no Python, no setup — just one `.exe`.
+
+1. Open the [**Releases page**](https://github.com/Cweamy/Anime-Squadron-Creams-Macro/releases/latest)
+2. The newest release is shown at the top
+3. Under **Assets**, click the `.exe` file (e.g. `Anime Squadron Creams Macro.exe`) to download it
+4. Double-click the downloaded file to run it — that's it
+
+> Windows SmartScreen may warn about an unrecognized app the first time (normal for small open-source tools). Click **More info → Run anyway**, or build it yourself from source below.
+
+On first launch, the macro asks permission before creating anything on disk — a `settings.json` file and a `Loadouts` folder, both placed next to the `.exe`. Decline and it still works, it just won't remember anything between sessions.
 
 ## Features
 
-- **Task Queue** — Queue multiple farming tasks with drag-and-drop reordering and looping support.
-- **Loadout System** — Built-in presets (Secret Mats, Mythic Mats, Gold & Trait Farm, etc.) and custom loadouts you can save and stack.
+- **Task Queue** — Queue multiple farming tasks with drag-and-drop reordering, removal, and looping support.
+- **Quick Material Farm** — Pick a map (GT City, Marine Lobby, Ninja Village, Eclipse, or The Ice Continent) and click **Quick Material Farm**: it auto-builds 5 tasks (Story Chapters 2/4/6/8/10, Hard, ×15 each) and enables Loop — instant material farming, no manual queue building.
+- **Loadouts** — Save your own custom loadouts, stack them with the **Append** dropdown, and use the built-in **Gold & Trait Farm** preset. Export any loadout to a `.json` file or import one shared by a friend.
 - **Game Modes** — Challenge, Raid, Invasion, Squadron, and Story with full stage/map/chapter/difficulty selection.
 - **Raid Maps** — GT (Hidden Danger, Saiyan Hunt, Ruler Dragon, The Ultimate Evil) and Eclipse (Golden Age 1–3, The Eclipse).
 - **Invasion** — The Lava Continent (Ashfall Continent, Infernal Landmass, Magma Rift, Scorched Horizon).
-- **Squadron/Story Maps** — GT City, Marine Lobby, Ninja Village, Eclipse — with up to 10 acts (Story) or 4 chapters (Squadron).
+- **Squadron/Story Maps** — GT City, Marine Lobby, Ninja Village, Eclipse, plus The Ice Continent (Story) — up to 10 chapters (Story) or 4 chapters (Squadron).
 - **Challenge Reward Scanner** — Automatically checks challenge rewards every 30 minutes. Select desired rewards (Stat Reroll, Trait Reroll, Gem) and the macro farms them until the slot resets. Priority mode leaves the current battle instantly when rewards refresh.
 - **Trait Farm Tracking** — Enable "Track Trait" per task to track daily trait drops for that stage (Aizen, Garou, GT — The Ultimate Evil, Eclipse — The Eclipse). Each stage has its own daily limit (Garou caps at 30, others at 100); once hit, the task is skipped automatically and resets daily at 00:00 UTC.
 - **Live Dashboard** — Win rate, run count, V/D stats, session timer, and task progress bar — all updating in real time.
+- **Interactive Tutorial** — A built-in step-by-step "How to Use" walkthrough opens on first launch and can be reopened anytime via the **?** icon in the header.
 - **Log Viewer** — Built-in live log feed for debugging.
 - **Discord Webhooks** — Notifications with win/loss stats, battle time, task progress, session time, and optional screenshots (Roblox, fullscreen, or none).
 - **Auto Reconnect** — Detects disconnects and crashes, automatically rejoins via deep link.
 - **Auto Update** — Checks GitHub Releases on startup with one-click update.
-- **Docked UI** — Roblox docks directly into the macro panel for a clean single-window experience.
+- **Docked UI** — Roblox docks directly into the macro panel for a clean single-window experience — no alt-tabbing.
 - **Instant Stop** — Press `F2` or click Stop to halt immediately, even mid-battle.
-- **Hide to Tray** — Press `F4` to hide the whole window and drop a tray icon; auto-pauses if a task is running and resumes when restored. Every hotkey is rebindable from the settings (gear) icon.
-
-## Download
-
-Grab the latest `.exe` from [**Releases**](https://github.com/Cweamy/Anime-Squadron-Creams-Macro/releases/latest) — no install or Python required.
+- **Collapsible Panel** — Press `F4` to tuck the macro control panel away while Roblox keeps running full-size. All hotkeys are rebindable (and resettable) from the settings (gear) icon.
 
 ## Usage
+
+> **New to the macro?** Click the **?** icon in the app header for a full interactive walkthrough — it also pops up automatically the first time you launch.
 
 1. Download and run `Anime Squadron Creams Macro.exe`
 2. The macro will wait for Roblox — click **Launch Game** or open Anime Squadron manually
 3. Roblox docks into the macro window automatically
-4. Add tasks to the queue — pick mode, map, act, difficulty, and repeat count
+4. Add tasks to the queue — pick mode, map, chapter, difficulty, and repeat count (or use **Quick Material Farm** to build a queue in one click)
 5. Click **Start** — the macro handles everything from there
 
 ### Game Modes
@@ -69,17 +85,25 @@ Grab the latest `.exe` from [**Releases**](https://github.com/Cweamy/Anime-Squad
 | **Raid** | GT, Eclipse | GT: Hidden Danger, Saiyan Hunt, Ruler Dragon, The Ultimate Evil · Eclipse: Golden Age 1–3, The Eclipse |
 | **Invasion** | The Lava Continent | Ashfall Continent, Infernal Landmass, Magma Rift, Scorched Horizon |
 | **Squadron** | GT City, Marine Lobby, Ninja Village, Eclipse | Chapter 1–4 |
-| **Story** | GT City, Marine Lobby, Ninja Village, Eclipse | Chapter 1–10 |
+| **Story** | GT City, Marine Lobby, Ninja Village, Eclipse, The Ice Continent | Chapter 1–10 |
 | **Challenge** | Regular, Aizen, Garou | Normal / Hard (Aizen & Garou) |
 
 Each task supports Normal or Hard difficulty and any repeat count. Enable **Loop** to restart the queue after all tasks finish.
+
+### Quick Material Farm
+
+The fastest way to set up material farming in Anime Squadron:
+
+1. In the Task Queue panel, pick a map from the dropdown next to the **Quick Material Farm** button (GT City, Marine Lobby, Ninja Village, Eclipse, or The Ice Continent)
+2. Click **Quick Material Farm**
+3. It generates 5 tasks automatically — Story mode, Chapters 2/4/6/8/10, Hard difficulty, ×15 repeats each — and turns on **Loop**
 
 ### Challenge Rewards
 
 Select desired rewards under the Challenge Rewards section. When enabled:
 
 - The macro checks the challenge tab every 30 minutes between runs
-- If a desired reward (Stat Reroll, Trait Reroll) is found, it farms the challenge until the slot resets
+- If a desired reward (Stat Reroll, Trait Reroll, Gem) is found, it farms the challenge until the slot resets
 - When the slot changes, it rechecks for desired rewards in the new slot
 - **Priority mode** — leaves the current battle immediately when a reward refresh happens
 
@@ -87,19 +111,9 @@ Challenge battles are tracked separately and don't count toward your task progre
 
 ### Loadouts
 
-Built-in presets for common farming setups:
-
-| Preset | Tasks |
-|--------|-------|
-| Gold & Trait Farm | GT City Ch.1 ×999 (loop, trait reroll check) |
-| Secret Mats | Story GT/Marine/Ninja Ch.10 Hard ×15 each |
-| Mythic Mats | Story GT/Marine/Ninja Ch.9 Hard ×10 each |
-| Legendary Mats | Story GT/Marine/Ninja Ch.7 Hard ×10 each |
-| Epic Mats | Story GT/Marine/Ninja Ch.5 Hard ×10 each |
-| Rare Mats | Story GT/Marine/Ninja Ch.3 Hard ×10 each |
-| Ultimate Material Farm | Story Eclipse/GT/Marine/Ninja Ch.10 Hard ×15 each + GT/Marine/Ninja Ch.8 Hard ×10 each |
-
-Save your own custom loadouts and use the **Append** dropdown to stack multiple loadouts together.
+- **Gold & Trait Farm** (built-in preset) — GT City Ch.1 ×999 with Loop and trait reroll challenge checking
+- **Custom loadouts** — save your current task queue under any name, and use the **Append** dropdown to stack multiple loadouts together. Each one is saved as its own `.json` file in a **Loadouts** folder next to the app, so you can back them up or find them on disk directly.
+- **Export / Import** — the download/upload icons next to the loadout dropdown let you export the current task queue to a `.json` file (defaults to the Loadouts folder) or import one shared by a friend — great for sharing farming setups or backing them up
 
 ### Discord Webhook
 
@@ -115,9 +129,9 @@ Each run sends an embed with mode, win rate, battle time, task progress, session
 |-----|--------|
 | `F2` | Emergency stop |
 | `F3` | Pause / Resume |
-| `F4` | Hide to tray (auto-pauses if running; click the tray icon to restore) |
+| `F4` | Collapse/restore the macro panel — Roblox stays visible and the macro keeps running (falls back to hide-to-tray if Roblox isn't docked yet) |
 
-All hotkeys can be rebound from the gear icon in the header.
+All hotkeys can be rebound from the gear icon in the header — each has a one-click **reset to default** button too.
 
 ## Building from Source
 
@@ -144,7 +158,9 @@ python build_nuitka.py
 
 ## How It Works
 
-The macro uses **screen capture** (mss) and **template matching** (OpenCV) to detect UI elements in the Roblox window. It identifies the current scene (lobby, stage select, battle, results, etc.) and navigates through menus by clicking detected buttons. Victory/defeat is determined by HSV color sampling on the results screen. No memory reading or injection — purely vision-based.
+Cream's Macro is **vision-based**: it uses **screen capture** (mss) and **template matching** (OpenCV) to detect UI elements in the Roblox window. It identifies the current scene (lobby, stage select, battle, results, etc.) and navigates through menus by clicking detected buttons. Victory/defeat is determined by HSV color sampling on the results screen.
+
+There is **no memory reading, no injection, and no exploit code** — the macro only sees pixels and moves the mouse, the same way a player would. That doesn't make any automation risk-free, but it means this is a macro tool, not a cheat-engine-style script.
 
 ## License
 

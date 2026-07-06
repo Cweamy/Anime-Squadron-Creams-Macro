@@ -5,6 +5,10 @@ function api() { return window.pywebview.api; }
 
 window.addEventListener('pywebviewready', async () => {
   try {
+    await ensureStorageConsent();
+  } catch (e) { console.error('storageConsent', e); }
+
+  try {
     await loadRewards();
   } catch (e) { console.error('loadRewards', e); }
 
@@ -32,6 +36,7 @@ window.addEventListener('pywebviewready', async () => {
     if (s.queue && s.queue.length > 0) {
       for (const t of s.queue) addTask(t);
     }
+    if (!s.tutorial_seen) openTutorialModal();
   } catch (e) { console.error('loadSettings', e); }
 
   try { await api().start_roblox_poll(); } catch (e) {}
@@ -658,59 +663,21 @@ const PRESETS = {
     ],
     settings: { check_challenges: true, loop: true, rewards: ["trait_reroll.png"] },
   },
-  "Secret Mats": {
-    tasks: [
-      { mode: "Story", repeat: 15, map: "GT City", act: "Chapter 10", diff: "Hard" },
-      { mode: "Story", repeat: 15, map: "Marine Lobby", act: "Chapter 10", diff: "Hard" },
-      { mode: "Story", repeat: 15, map: "Ninja Village", act: "Chapter 10", diff: "Hard" },
-    ],
-    settings: { loop: true },
-  },
-  "Mythic Mats": {
-    tasks: [
-      { mode: "Story", repeat: 10, map: "GT City", act: "Chapter 8", diff: "Hard" },
-      { mode: "Story", repeat: 10, map: "Marine Lobby", act: "Chapter 8", diff: "Hard" },
-      { mode: "Story", repeat: 10, map: "Ninja Village", act: "Chapter 8", diff: "Hard" },
-    ],
-    settings: { loop: true },
-  },
-  "Legendary Mats": {
-    tasks: [
-      { mode: "Story", repeat: 10, map: "GT City", act: "Chapter 6", diff: "Hard" },
-      { mode: "Story", repeat: 10, map: "Marine Lobby", act: "Chapter 6", diff: "Hard" },
-      { mode: "Story", repeat: 10, map: "Ninja Village", act: "Chapter 6", diff: "Hard" },
-    ],
-    settings: { loop: true },
-  },
-  "Epic Mats": {
-    tasks: [
-      { mode: "Story", repeat: 10, map: "GT City", act: "Chapter 4", diff: "Hard" },
-      { mode: "Story", repeat: 10, map: "Marine Lobby", act: "Chapter 4", diff: "Hard" },
-      { mode: "Story", repeat: 10, map: "Ninja Village", act: "Chapter 4", diff: "Hard" },
-    ],
-    settings: { loop: true },
-  },
-  "Rare Mats": {
-    tasks: [
-      { mode: "Story", repeat: 10, map: "GT City", act: "Chapter 2", diff: "Hard" },
-      { mode: "Story", repeat: 10, map: "Marine Lobby", act: "Chapter 2", diff: "Hard" },
-      { mode: "Story", repeat: 10, map: "Ninja Village", act: "Chapter 2", diff: "Hard" },
-    ],
-    settings: { loop: true },
-  },
-  "Ultimate Material Farm": {
-    tasks: [
-      { mode: "Story", repeat: 15, map: "Eclipse", act: "Chapter 10", diff: "Hard" },
-      { mode: "Story", repeat: 15, map: "GT City", act: "Chapter 10", diff: "Hard" },
-      { mode: "Story", repeat: 15, map: "Marine Lobby", act: "Chapter 10", diff: "Hard" },
-      { mode: "Story", repeat: 15, map: "Ninja Village", act: "Chapter 10", diff: "Hard" },
-      { mode: "Story", repeat: 10, map: "GT City", act: "Chapter 8", diff: "Hard" },
-      { mode: "Story", repeat: 10, map: "Marine Lobby", act: "Chapter 8", diff: "Hard" },
-      { mode: "Story", repeat: 10, map: "Ninja Village", act: "Chapter 8", diff: "Hard" },
-    ],
-    settings: { loop: true },
-  },
 };
+
+// ── Quick Loadout: auto-build a Story material farm queue for one map ──
+const QUICK_MATERIAL_CHAPTERS = [2, 4, 6, 8, 10];
+
+function quickMaterialFarm() {
+  const map = document.getElementById('selQuickMap').value;
+  for (const ch of QUICK_MATERIAL_CHAPTERS) {
+    addTask({ mode: "Story", repeat: 15, map, act: "Chapter " + ch, diff: "Hard" });
+  }
+  document.getElementById('chkStartOver').checked = true;
+  document.getElementById('selLoadout').value = '';
+  updateDeleteBtn();
+  showToast('Quick Material Farm — ' + map + ' (Ch. 2/4/6/8/10)');
+}
 
 async function refreshLoadouts() {
   const sel = document.getElementById('selLoadout');
@@ -903,10 +870,51 @@ async function deleteLoadout() {
   await refreshAppendList();
 }
 
+async function exportLoadout() {
+  const tasks = getQueueTasks();
+  if (tasks.length === 0) {
+    showToast('Nothing to export');
+    return;
+  }
+  const sel = document.getElementById('selLoadout').value;
+  let name = 'My Loadout';
+  if (sel.startsWith('user:')) name = sel.replace('user:', '');
+  else if (sel.startsWith('preset:')) name = sel.replace('preset:', '');
+  try {
+    const res = await api().export_loadout(name, tasks);
+    if (res && res.ok) showToast('Exported ' + name);
+  } catch (e) {}
+}
+
+async function importLoadout() {
+  try {
+    const res = await api().import_loadout();
+    if (!res || !res.ok) {
+      showToast('Import cancelled');
+      return;
+    }
+    await refreshLoadouts();
+    await refreshAppendList();
+    document.getElementById('selLoadout').value = 'user:' + res.name;
+    updateDeleteBtn();
+    showToast('Imported ' + res.name + ' (' + res.tasks.length + ' tasks)');
+  } catch (e) {}
+}
+
 async function startQueue() {
   if (running) return;
   const tasks = getQueueTasks();
-  if (tasks.length === 0) return;
+  if (tasks.length === 0) {
+    showToast('Add a task to the queue before starting');
+    const addBtn = document.querySelector('.btn-add');
+    if (addBtn) {
+      addBtn.classList.remove('btn-attention');
+      void addBtn.offsetWidth; // restart animation if already playing
+      addBtn.classList.add('btn-attention');
+      addBtn.addEventListener('animationend', () => addBtn.classList.remove('btn-attention'), { once: true });
+    }
+    return;
+  }
   const cfg = {
     webhook_url: document.getElementById('txtWebhook').value.trim(),
     webhook_enabled: document.getElementById('chkWebhook').checked,
@@ -992,6 +1000,16 @@ async function loadHotkeys() {
   }
 }
 
+async function resetHotkey(action) {
+  if (rebindingAction) cancelRebind();
+  const res = await api().reset_hotkey(action);
+  if (res && res.ok) {
+    hotkeys[action] = res.key;
+    const btn = document.getElementById('hkBtn_' + action);
+    if (btn) btn.textContent = fmtKeyLabel(res.key);
+  }
+}
+
 function openSettingsModal() {
   document.getElementById('settingsModal').classList.remove('hidden');
 }
@@ -1061,3 +1079,87 @@ document.addEventListener('keydown', async (e) => {
     btn.textContent = fmtKeyLabel(hotkeys[action]);
   }
 }, true);
+
+// ── Panel hide/show (F4) ──
+window.__hideMacroPanel = function () {
+  closeSettingsModal();
+  document.getElementById('mainPanel').classList.add('panel-hidden');
+};
+window.__showMacroPanel = function () {
+  document.getElementById('mainPanel').classList.remove('panel-hidden');
+};
+
+// ── Tutorial / How to Use ──
+let tutorialStep = 0;
+
+function tutorialStepEls() {
+  return document.querySelectorAll('#tutorialModal .tutorial-step');
+}
+
+function renderTutorialStep() {
+  const steps = tutorialStepEls();
+  steps.forEach((el, i) => el.classList.toggle('hidden', i !== tutorialStep));
+
+  const dots = document.getElementById('tutorialDots');
+  dots.innerHTML = '';
+  steps.forEach((_, i) => {
+    const dot = document.createElement('span');
+    dot.className = 'tutorial-dot' + (i === tutorialStep ? ' active' : '');
+    dots.appendChild(dot);
+  });
+
+  document.getElementById('btnTutorialBack').style.visibility = tutorialStep === 0 ? 'hidden' : 'visible';
+  document.getElementById('btnTutorialNext').textContent = tutorialStep === steps.length - 1 ? 'Done' : 'Next';
+}
+
+function tutorialNext() {
+  const steps = tutorialStepEls();
+  if (tutorialStep >= steps.length - 1) {
+    closeTutorialModal();
+    return;
+  }
+  tutorialStep++;
+  renderTutorialStep();
+}
+
+function tutorialBack() {
+  if (tutorialStep === 0) return;
+  tutorialStep--;
+  renderTutorialStep();
+}
+
+function openTutorialModal() {
+  tutorialStep = 0;
+  renderTutorialStep();
+  document.getElementById('tutorialModal').classList.remove('hidden');
+}
+
+function closeTutorialModal() {
+  document.getElementById('tutorialModal').classList.add('hidden');
+  api().save_settings_full({ tutorial_seen: true }).catch(() => {});
+}
+
+// ── First-run storage consent ──
+let _resolveStorageConsent = null;
+
+function ensureStorageConsent() {
+  return new Promise(async (resolve) => {
+    let needs = false;
+    try { needs = await api().needs_storage_consent(); } catch (e) {}
+    if (!needs) { resolve(); return; }
+    _resolveStorageConsent = resolve;
+    document.getElementById('consentModal').classList.remove('hidden');
+  });
+}
+
+async function answerStorageConsent(allow) {
+  document.getElementById('consentModal').classList.add('hidden');
+  if (allow) {
+    try { await api().grant_storage_consent(); } catch (e) {}
+  }
+  if (_resolveStorageConsent) {
+    const resolve = _resolveStorageConsent;
+    _resolveStorageConsent = null;
+    resolve();
+  }
+}

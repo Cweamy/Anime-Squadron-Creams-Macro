@@ -16,6 +16,7 @@ else:
 SCRIPT_DIR = BUNDLE_DIR
 ASSET_DIR = os.path.join(SCRIPT_DIR, "assets")
 REWARD_DIR = os.path.join(ASSET_DIR, "rewards")
+LOADOUT_DIR = os.path.join(APP_DIR, "Loadouts")
 
 GAME_TITLE = "Roblox"
 PLACE_ID = "71132543521245"

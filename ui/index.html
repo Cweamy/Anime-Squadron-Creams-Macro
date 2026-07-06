@@ -27,6 +27,7 @@
     </div>
   </div>
 
+  <div id="mainPanel">
   <div class="header">
     <span class="title">Cream's Macro</span>
     <span class="subtitle">Anime Squadron <span id="verBadge" class="ver-badge"></span></span>
@@ -43,6 +44,9 @@
       <a class="social-link" href="#" onclick="openSettingsModal(); return false;" title="Settings">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       </a>
+      <a class="social-link" href="#" onclick="openTutorialModal(); return false;" title="How to Use">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </a>
     </div>
   </div>
 
@@ -57,17 +61,112 @@
       </div>
       <div class="hotkey-row">
         <span class="hotkey-label">Emergency Stop</span>
-        <button class="hotkey-btn" id="hkBtn_stop" onclick="beginRebind('stop')"></button>
+        <div class="hotkey-controls">
+          <button class="hotkey-btn" id="hkBtn_stop" onclick="beginRebind('stop')">F2</button>
+          <button class="hotkey-reset" onclick="resetHotkey('stop')" title="Reset to default (F2)">
+            <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          </button>
+        </div>
       </div>
       <div class="hotkey-row">
         <span class="hotkey-label">Pause / Resume</span>
-        <button class="hotkey-btn" id="hkBtn_pause" onclick="beginRebind('pause')"></button>
+        <div class="hotkey-controls">
+          <button class="hotkey-btn" id="hkBtn_pause" onclick="beginRebind('pause')">F3</button>
+          <button class="hotkey-reset" onclick="resetHotkey('pause')" title="Reset to default (F3)">
+            <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          </button>
+        </div>
       </div>
       <div class="hotkey-row">
         <span class="hotkey-label">Hide to Tray</span>
-        <button class="hotkey-btn" id="hkBtn_hide" onclick="beginRebind('hide')"></button>
+        <div class="hotkey-controls">
+          <button class="hotkey-btn" id="hkBtn_hide" onclick="beginRebind('hide')">F4</button>
+          <button class="hotkey-reset" onclick="resetHotkey('hide')" title="Reset to default (F4)">
+            <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          </button>
+        </div>
       </div>
       <p class="section-desc" style="margin-top:10px">Click a key, then press the new key on your keyboard. Press Esc to cancel.</p>
+    </div>
+  </div>
+
+  <!-- Tutorial / How to Use Modal -->
+  <div id="tutorialModal" class="modal-overlay hidden" onclick="if(event.target===this) closeTutorialModal()">
+    <div class="modal-box modal-box-lg">
+      <div class="modal-header">
+        <span>How to Use</span>
+        <button class="btn-modal-close" onclick="closeTutorialModal()">
+          <svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="tutorial-step" data-step="0">
+        <div class="tutorial-title">1. Launch the Game</div>
+        <p class="section-desc">Open Anime Squadron in Roblox, or click <strong>Launch Game</strong> on the waiting screen. Once found, Roblox docks straight into this window — no need to move or resize anything.</p>
+      </div>
+
+      <div class="tutorial-step hidden" data-step="1">
+        <div class="tutorial-title">2. Add Tasks</div>
+        <p class="section-desc">In <strong>Task Queue</strong>, click <strong>+ Add</strong> to create a task, then pick:</p>
+        <ul class="tutorial-list">
+          <li><strong>Mode</strong> — Challenge, Raid, Invasion, Squadron, or Story</li>
+          <li><strong>Map / Act / Chapter</strong> — where to farm</li>
+          <li><strong>Difficulty</strong> — Normal or Hard</li>
+          <li><strong>×Repeat</strong> — how many runs before moving to the next task</li>
+        </ul>
+        <p class="section-desc">Drag the <strong>⠿</strong> handle to reorder tasks, or ✕ to remove one. Enable <strong>Loop</strong> to restart the queue once every task finishes.</p>
+      </div>
+
+      <div class="tutorial-step hidden" data-step="2">
+        <div class="tutorial-title">3. Loadouts &amp; Quick Farm</div>
+        <p class="section-desc">Save your current queue as a reusable <strong>Loadout</strong>, or pick one from the dropdown to load it back. Use the <strong>+</strong> dropdown to append a loadout onto your existing queue instead of replacing it.</p>
+        <p class="section-desc">Need a fast material run? Pick a map next to <strong>Quick Material Farm</strong> and click it — it auto-queues Chapters 2/4/6/8/10 on Hard, ×15 each, with Loop on.</p>
+        <p class="section-desc">Use the export/import icons to save a loadout to a file or load one someone shared with you.</p>
+      </div>
+
+      <div class="tutorial-step hidden" data-step="3">
+        <div class="tutorial-title">4. Start &amp; Hotkeys</div>
+        <p class="section-desc">Click <strong>Start</strong> to run the queue — the macro handles menus, battles, and results automatically.</p>
+        <ul class="tutorial-list">
+          <li><strong>F2</strong> — Emergency stop</li>
+          <li><strong>F3</strong> — Pause / Resume</li>
+          <li><strong>F4</strong> — Collapse the macro panel (Roblox stays visible)</li>
+        </ul>
+        <p class="section-desc">Rebind any of these from the gear icon, including a reset-to-default button per key.</p>
+      </div>
+
+      <div class="tutorial-step hidden" data-step="4">
+        <div class="tutorial-title">5. Extras</div>
+        <ul class="tutorial-list">
+          <li><strong>Challenge Rewards</strong> — auto-checks every 30 min and farms a challenge when a desired reward is up</li>
+          <li><strong>Track Trait</strong> — per-task toggle that skips a stage once its daily trait limit is hit</li>
+          <li><strong>Webhook</strong> — paste a Discord webhook URL to get run results posted automatically</li>
+        </ul>
+        <p class="section-desc">That's everything — click Done and start farming!</p>
+      </div>
+
+      <div class="tutorial-footer">
+        <div class="tutorial-dots" id="tutorialDots"></div>
+        <div class="tutorial-nav">
+          <button class="btn btn-sm btn-ghost" id="btnTutorialBack" onclick="tutorialBack()">Back</button>
+          <button class="btn btn-sm btn-accent" id="btnTutorialNext" onclick="tutorialNext()">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- First-run storage consent -->
+  <div id="consentModal" class="modal-overlay hidden" onclick="if(event.target===this) answerStorageConsent(false)">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span>Set Up Storage</span>
+      </div>
+      <p class="section-desc">Cream's Macro would like to create a <strong>settings.json</strong> file and a <strong>Loadouts</strong> folder next to the app, to remember your settings and save/share loadouts between sessions.</p>
+      <p class="section-desc">You can still use the macro without this — nothing will be saved once you close it.</p>
+      <div class="consent-actions">
+        <button class="btn btn-sm btn-ghost" onclick="answerStorageConsent(false)">Not Now</button>
+        <button class="btn btn-sm btn-accent" onclick="answerStorageConsent(true)">Allow</button>
+      </div>
     </div>
   </div>
 
@@ -163,6 +262,12 @@
         <select id="selAppend" onchange="onAppendSelect()" title="Pick a loadout to add to queue">
           <option value="">+</option>
         </select>
+        <button id="btnExportLoadout" class="btn btn-sm btn-ghost" onclick="exportLoadout()" title="Export current queue to a file">
+          <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px;vertical-align:-1px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+        <button class="btn btn-sm btn-ghost" onclick="importLoadout()" title="Import a loadout from a file">
+          <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px;vertical-align:-1px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </button>
         <button id="btnDelLoadout" class="btn btn-sm btn-danger-sm" onclick="deleteLoadout()" title="Delete selected loadout" style="display:none">
           <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px;vertical-align:-1px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -174,6 +279,19 @@
         </button>
         <button class="btn btn-sm btn-ghost" onclick="cancelSaveLoadout()">
           <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px;vertical-align:-1px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="quick-loadout-bar">
+        <svg class="icon" viewBox="0 0 24 24" style="width:11px;height:11px;flex:none"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg>
+        <select id="selQuickMap">
+          <option value="GT City">GT City</option>
+          <option value="Marine Lobby">Marine Lobby</option>
+          <option value="Ninja Village">Ninja Village</option>
+          <option value="Eclipse">Eclipse</option>
+          <option value="The Ice Continent">The Ice Continent</option>
+        </select>
+        <button class="btn btn-sm btn-accent" onclick="quickMaterialFarm()" title="Add Story Chapters 2, 4, 6, 8, 10 on Hard, x15, looping">
+          Quick Material Farm
         </button>
       </div>
       <div id="taskList"></div>
@@ -270,8 +388,9 @@
     <button id="btnUpdate" class="btn btn-sm btn-accent" onclick="doUpdate()">Update</button>
   </div>
 
-
   <input type="hidden" id="txtWebhook">
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>

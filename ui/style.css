@@ -43,8 +43,21 @@ body {
 
 body.docked { padding-left: 1162px; }
 
+/* ══ Panel hide/show (F4) ══ */
+#mainPanel {
+  transform-origin: left center;
+  transition: transform .28s ease, opacity .28s ease;
+}
+#mainPanel.panel-hidden {
+  transform: translateX(-60px) scaleX(0.75);
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* ══ Header ══ */
 .header {
+  position: relative;
+  z-index: 150;
   text-align: center;
   margin-bottom: 10px;
   padding: 4px 0;
@@ -189,6 +202,13 @@ body.docked { padding-left: 1162px; }
 .btn-sm     { padding: 5px 12px; font-size: 11px; font-weight: 600; }
 .btn-add    { background: var(--white); color: #0D1117; }
 .btn-add:hover { box-shadow: 0 2px 10px rgba(240,246,252,.3); }
+.btn-attention { animation: btnAttention .5s ease 2; }
+@keyframes btnAttention {
+  0%, 100% { transform: translateX(0); box-shadow: 0 0 0 0 rgba(88,166,255,0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+  50% { box-shadow: 0 0 0 4px rgba(88,166,255,.35); }
+}
 .btn-ghost  { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
 .btn-accent { background: var(--blue); color: #fff; flex-shrink: 0; }
 .btn-accent:hover { box-shadow: 0 2px 10px #58A6FF40; }
@@ -385,6 +405,22 @@ fieldset.collapsed .section-content {
 .loadout-name-row input {
   flex: 1; font-size: 11px; padding: 5px 8px;
 }
+
+.quick-loadout-bar {
+  display: flex; gap: 6px; align-items: center;
+  margin-bottom: 8px;
+  padding: 6px 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--accent-dim);
+  animation: groupSlideIn .3s ease both;
+}
+.quick-loadout-bar select {
+  flex: 1; font-size: 11px; padding: 4px 6px;
+  background-color: var(--bg-input);
+}
+.quick-loadout-bar .btn { white-space: nowrap; }
 
 .task-card {
   background: var(--bg-surface);
@@ -836,6 +872,11 @@ label { display: block; margin-top: 4px; font-size: 12px; color: var(--text-dim)
   display: flex; align-items: center; justify-content: center;
   z-index: 100;
 }
+/* When Roblox is docked into the left side of the window, that region is a
+   native child window that always paints on top of the webview content —
+   CSS z-index can't win against it. Confine the modal to the panel/dock
+   area on the right so it doesn't render underneath the game. */
+body.docked .modal-overlay { left: 1162px; }
 .modal-overlay.hidden { display: none; }
 .modal-box {
   background: var(--bg-card);
@@ -870,6 +911,46 @@ label { display: block; margin-top: 4px; font-size: 12px; color: var(--text-dim)
   transition: all .15s ease;
 }
 .hotkey-btn:hover { border-color: var(--blue); color: var(--blue); }
+.hotkey-controls { display: flex; align-items: center; gap: 6px; }
+.hotkey-reset {
+  background: transparent; color: var(--text-muted);
+  border: none; border-radius: 4px;
+  padding: 4px; cursor: pointer; display: flex;
+  transition: color .15s ease;
+}
+.hotkey-reset:hover { color: var(--blue); }
+
+/* ══ Tutorial Modal ══ */
+.modal-box-lg { width: 320px; max-height: 80vh; overflow-y: auto; }
+.tutorial-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px; font-weight: 600; color: var(--blue);
+  margin-bottom: 6px;
+}
+.tutorial-list {
+  margin: 0 0 8px 0; padding-left: 16px;
+  font-size: 11px; color: var(--text-muted); line-height: 1.6;
+}
+.tutorial-list li { margin-bottom: 2px; }
+.tutorial-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.tutorial-dots { display: flex; gap: 5px; }
+.tutorial-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--border);
+  transition: background .15s ease;
+}
+.tutorial-dot.active { background: var(--blue); }
+.tutorial-nav { display: flex; gap: 6px; }
+
+/* ══ Storage Consent Modal ══ */
+.consent-actions {
+  display: flex; justify-content: flex-end; gap: 8px;
+  margin-top: 12px;
+}
 .hotkey-btn.listening {
   border-color: var(--blue); color: var(--blue);
   background: var(--glow-blue);

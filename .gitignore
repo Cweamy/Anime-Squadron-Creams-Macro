@@ -16,6 +16,7 @@ _update.bat
 # Runtime files
 debug.log
 settings.json
+Loadouts/
 
 # Raw assets (embedded in core/asset_data.py instead)
 assets/

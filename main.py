@@ -5,6 +5,7 @@ Deps: pip install -r requirements.txt
 """
 
 import os
+import json
 import time
 import ctypes
 import threading
@@ -58,7 +59,6 @@ class Api:
         self._window = None
         self._poll_thread = None
         self._hidden = False
-        self._auto_paused = False
         self._on_hotkeys_changed = None
 
         tf = cfg.load().get("trait_farm", {})
@@ -70,6 +70,13 @@ class Api:
         counts = {key: info["count"] for key, info in state["stages"].items()}
         data["trait_farm"] = {"stages": counts, "last_reset": state["last_reset"]}
         cfg.save(data)
+
+    def needs_storage_consent(self) -> bool:
+        return cfg.needs_consent()
+
+    def grant_storage_consent(self) -> dict:
+        cfg.grant_consent()
+        return {"ok": True}
 
     def set_window(self, w):
         self._window = w
@@ -111,6 +118,19 @@ class Api:
             self._on_hotkeys_changed(keys)
         return {"ok": True}
 
+    def reset_hotkey(self, action: str) -> dict:
+        if action not in HOTKEY_ACTIONS:
+            return {"ok": False}
+        data = cfg.load()
+        keys = dict(HOTKEY_DEFAULTS)
+        keys.update(data.get("hotkeys", {}))
+        keys[action] = HOTKEY_DEFAULTS[action]
+        data["hotkeys"] = keys
+        cfg.save(data)
+        if self._on_hotkeys_changed:
+            self._on_hotkeys_changed(keys)
+        return {"ok": True, "key": HOTKEY_DEFAULTS[action]}
+
     def toggle_hide(self):
         if self._hidden:
             self.restore_from_tray()
@@ -121,23 +141,34 @@ class Api:
         if self._hidden or not self._window:
             return
         self._hidden = True
-        if self.bot.active and not self.bot.paused:
-            self._auto_paused = True
-            self.bot.pause()
+        window = self._window
+
+        if self.bot._docked:
+            # Roblox is docked in the window — only collapse the macro panel,
+            # keep the game visible instead of hiding the whole window.
+            window.evaluate_js("window.__hideMacroPanel && window.__hideMacroPanel()")
+
+            def _shrink():
+                time.sleep(0.28)
+                window.resize(FIXED_WIN_W + 16, GUI_HEIGHT + 39)
+
+            threading.Thread(target=_shrink, daemon=True).start()
         else:
-            self._auto_paused = False
-        self._window.hide()
-        tray.add_icon(ICO_PATH, "Cream's Macro (hidden) — click to restore", self.restore_from_tray)
+            window.hide()
+
+        tray.add_icon(ICO_PATH, "Cream's Macro (panel hidden) — click to restore", self.restore_from_tray)
 
     def restore_from_tray(self):
         if not self._hidden or not self._window:
             return
         self._hidden = False
         tray.remove_icon()
-        self._window.show()
-        if self._auto_paused:
-            self._auto_paused = False
-            self.bot.resume()
+
+        if self.bot._docked:
+            self._window.resize(GUI_WIDTH_FULL + 16, GUI_HEIGHT + 39)
+            self._window.evaluate_js("window.__showMacroPanel && window.__showMacroPanel()")
+        else:
+            self._window.show()
 
     def set_trait_count(self, stage_key: str, count: int):
         self.bot.set_trait_count(stage_key, count)
@@ -168,22 +199,62 @@ class Api:
         cfg.save(existing)
 
     def get_loadouts(self) -> dict:
-        data = cfg.load()
-        return data.get("loadouts", {})
+        return cfg.list_loadouts()
 
     def save_loadout(self, name: str, tasks: list):
-        data = cfg.load()
-        loadouts = data.get("loadouts", {})
-        loadouts[name] = tasks
-        data["loadouts"] = loadouts
-        cfg.save(data)
+        cfg.save_loadout_file(name, tasks)
 
     def delete_loadout(self, name: str):
-        data = cfg.load()
-        loadouts = data.get("loadouts", {})
-        loadouts.pop(name, None)
-        data["loadouts"] = loadouts
-        cfg.save(data)
+        cfg.delete_loadout_file(name)
+
+    def export_loadout(self, name: str, tasks: list) -> dict:
+        if not self._window:
+            return {"ok": False}
+        try:
+            os.makedirs(cfg.LOADOUT_DIR, exist_ok=True)
+        except OSError:
+            pass
+        result = self._window.create_file_dialog(
+            webview.SAVE_DIALOG,
+            directory=cfg.LOADOUT_DIR,
+            save_filename=f"{name}.json",
+            file_types=("JSON Files (*.json)", "All files (*.*)"),
+        )
+        if not result:
+            return {"ok": False}
+        path = result if isinstance(result, str) else result[0]
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump({"name": name, "tasks": tasks}, f, indent=2)
+            return {"ok": True}
+        except OSError:
+            return {"ok": False}
+
+    def import_loadout(self) -> dict:
+        if not self._window:
+            return {"ok": False}
+        result = self._window.create_file_dialog(
+            webview.OPEN_DIALOG,
+            directory=cfg.LOADOUT_DIR if os.path.isdir(cfg.LOADOUT_DIR) else "",
+            file_types=("JSON Files (*.json)", "All files (*.*)"),
+        )
+        if not result:
+            return {"ok": False}
+        path = result[0]
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                payload = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            return {"ok": False}
+
+        tasks = payload.get("tasks") if isinstance(payload, dict) else None
+        if not isinstance(tasks, list) or not tasks:
+            return {"ok": False}
+        name = (payload.get("name") if isinstance(payload, dict) else None) \
+            or os.path.splitext(os.path.basename(path))[0]
+
+        cfg.save_loadout_file(name, tasks)
+        return {"ok": True, "name": name, "tasks": tasks}
 
     def get_reward_files(self) -> list:
         files = set()
