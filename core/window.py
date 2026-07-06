@@ -174,18 +174,40 @@ def get_screen_size() -> tuple[int, int]:
 WM_KEYDOWN = 0x0100
 WM_KEYUP = 0x0101
 
+KEYEVENTF_KEYUP = 0x0002
+KEYEVENTF_SCANCODE = 0x0008
+
+# Hardware scan codes (set 1) for physical key position — NOT tied to the
+# OS's active keyboard input language. A plain keybd_event(vk, ...) call
+# (no KEYEVENTF_SCANCODE) makes Windows re-derive a scan code through the
+# CURRENT layout, which can silently map to the wrong key — or nothing at
+# all — under a non-Latin layout like Thai. That's why WASD-walk could
+# stop working purely from switching the Windows input language. Sending
+# the scan code directly bypasses layout translation entirely.
+_SCAN_CODES = {
+    0x09: 0x0F,  # VK_TAB
+    0x20: 0x39,  # VK_SPACE
+    0x57: 0x11,  # VK_W (walk forward)
+    0x45: 0x12,  # VK_E (interact)
+}
+
+
+def _scan_for(vk: int) -> int:
+    return _SCAN_CODES.get(vk) or user32.MapVirtualKeyW(vk, 0)  # 0 = MAPVK_VK_TO_VSC
+
 
 def press_key(vk: int):
-    user32.keybd_event(vk, 0, 0, 0)
-    user32.keybd_event(vk, 0, 0x0002, 0)  # KEYEVENTF_KEYUP
+    scan = _scan_for(vk)
+    user32.keybd_event(0, scan, KEYEVENTF_SCANCODE, 0)
+    user32.keybd_event(0, scan, KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0)
 
 
 def key_down(vk: int):
-    user32.keybd_event(vk, 0, 0, 0)
+    user32.keybd_event(0, _scan_for(vk), KEYEVENTF_SCANCODE, 0)
 
 
 def key_up(vk: int):
-    user32.keybd_event(vk, 0, 0x0002, 0)  # KEYEVENTF_KEYUP
+    user32.keybd_event(0, _scan_for(vk), KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, 0)
 
 
 def send_key_to_window(hwnd: int, vk: int):

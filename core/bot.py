@@ -531,8 +531,11 @@ class GameBot:
 
     def _navigate_infinite_to_battle(self):
         """Infinite Farming has no stage-select menu either: Lobby -> Play ->
-        Leave (this warps you to a fixed spawn point) -> walk straight for
-        ~6s to reach the portal -> Play (inf/play_inf.png) at the portal,
+        Leave (room/lobby_leave.png — this warps you to a fixed spawn point)
+        -> walk straight toward the portal, pressing E and checking for
+        inf/play_inf.png repeatedly along the way (rather than a blind
+        fixed-duration walk + single E press, since the exact distance can
+        vary) -> Play -> Start (room/start.png, same as every other mode),
         straight into a battle. Same self-healing idea as Event: if a run
         ends up back at the lobby, the next call just redoes the whole
         sequence from scratch.
@@ -556,21 +559,51 @@ class GameBot:
 
         if not self._wait_and_click("lobby/play.png", "Play"):
             return
-        if not self._wait_and_click("room/leave.png", "Leave (warp to portal)"):
+        if not self._wait_and_click("room/lobby_leave.png", "Leave (warp to portal)"):
             return
 
-        self.log.log("Infinite: walking to the portal (holding W ~6s)")
-        self._walk_forward(6.0)
+        self.log.log("Infinite: walking to the portal, pressing E until Play appears")
+        if self._walk_and_interact("inf/play_inf.png"):
+            self._click_start()
 
-        self._wait_and_click("inf/play_inf.png", "Infinite Play")
+    def _walk_and_interact(self, image: str, min_walk_seconds: float = 3.0, timeout: float = 16.0) -> bool:
+        """Hold W and repeatedly press E while walking, checking for `image`
+        after each E press. The portal's exact distance can vary, so pressing
+        E once after a fixed blind walk isn't reliable — this keeps trying
+        for as long as it takes (up to `timeout`) instead.
 
-    def _walk_forward(self, seconds: float):
+        keybd_event-style key presses go to whatever window currently has
+        OS keyboard focus, not to a specific HWND — if the docked Roblox
+        view isn't focused, W/E silently go nowhere. Activate it first.
+        """
+        if self._hwnd and wm.is_window(self._hwnd) and not wm.is_foreground(self._hwnd):
+            wm.activate_window(self._hwnd)
+            self._sleep(0.2)
+
         VK_W = 0x57
+        VK_E = 0x45
         wm.key_down(VK_W)
         try:
-            self._sleep(seconds)
+            deadline = time.monotonic() + timeout
+            min_walk_deadline = time.monotonic() + min_walk_seconds
+            while time.monotonic() < deadline:
+                if self._halt.is_set():
+                    return False
+                if time.monotonic() >= min_walk_deadline:
+                    wm.press_key(VK_E)
+                self._sleep(0.4)
+                pos = self._see(image)
+                if pos:
+                    wm.key_up(VK_W)
+                    self.log.log(f"Infinite: clicking {image}")
+                    self._tap(pos, times=2, gap=150)
+                    self._sleep(1.2)
+                    self._note_progress()
+                    return True
         finally:
             wm.key_up(VK_W)
+        self.log.log(f"Infinite: couldn't find {image} within {timeout}s of walking")
+        return False
 
     def _wait_and_click(self, image: str, label: str, toggle_tab: bool = False, timeout: float = 8.0) -> bool:
         """Wait for a single flow-step image and click it once found."""
