@@ -3,9 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <title>Cream's Macro | Anime Squadron</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <!-- Google Fonts loaded non-blocking: the UI must paint instantly even if
+       fonts.googleapis.com is slow/unreachable (flaky wifi, firewalls, no
+       internet). preload+swap fetches it without holding up first paint;
+       Inter/Rajdhani apply once loaded, 'Segoe UI'/system-ui fallback until then. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap"
+        onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap"></noscript>
   <style>
     .icon { width: 14px; height: 14px; vertical-align: -2px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .icon-lg { width: 16px; height: 16px; vertical-align: -3px; }

@@ -13,9 +13,9 @@ build/
 *.onefile-build/
 _update.bat
 
-# Runtime files
+# Runtime files (settings.json, loadout exports, etc. — user data, not source)
 debug.log
-settings.json
+*.json
 Loadouts/
 
 # Raw assets (embedded in core/asset_data.py instead)

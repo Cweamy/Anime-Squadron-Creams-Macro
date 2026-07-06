@@ -4,9 +4,11 @@ let taskIdCounter = 0;
 function api() { return window.pywebview.api; }
 
 window.addEventListener('pywebviewready', async () => {
-  try {
-    await ensureStorageConsent();
-  } catch (e) { console.error('storageConsent', e); }
+  // Fire-and-forget: shows the consent prompt if needed, but must never
+  // block the rest of startup — reads (load_settings, get_loadouts, etc.)
+  // work fine on defaults with no consent yet, and writes are already
+  // gated server-side until consent is granted.
+  ensureStorageConsent().catch(e => console.error('storageConsent', e));
 
   try {
     await loadRewards();
