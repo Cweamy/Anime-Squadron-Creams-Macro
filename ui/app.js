@@ -61,7 +61,26 @@ window.addEventListener('pywebviewready', async () => {
     if (e.key === 'Enter') confirmSaveLoadout();
     if (e.key === 'Escape') cancelSaveLoadout();
   });
+
+  // Push challenge-reward settings to the bot immediately on change, so
+  // toggling Enabled/Priority/rewards takes effect right away — even while
+  // a queue is already running — instead of only on the next Start.
+  document.getElementById('chkChallenges').addEventListener('change', pushChallengeSettingsLive);
+  document.getElementById('chkPriority').addEventListener('change', pushChallengeSettingsLive);
+  document.getElementById('rewardList').addEventListener('change', e => {
+    if (e.target.type === 'checkbox') pushChallengeSettingsLive();
+  });
 });
+
+async function pushChallengeSettingsLive() {
+  try {
+    await api().update_challenge_settings(
+      document.getElementById('chkChallenges').checked,
+      document.getElementById('chkPriority').checked,
+      getSelectedRewards(),
+    );
+  } catch (e) {}
+}
 
 // ── Scramble Text ──
 let _scrambleAnim = null;

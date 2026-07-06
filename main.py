@@ -84,6 +84,14 @@ class Api:
     def start_queue(self, tasks: list, config: dict):
         self.bot.execute_queue(tasks, config)
 
+    def update_challenge_settings(self, check_challenges: bool, challenge_priority: bool, desired_rewards: list):
+        # Applied immediately, even mid-run — otherwise toggling Enabled/
+        # Priority/rewards after pressing Start had no effect until the next
+        # queue restart, since execute_queue() only reads config once.
+        self.bot._challenge_check = check_challenges
+        self.bot._challenge_priority = challenge_priority
+        self.bot._reward_files = desired_rewards
+
     def stop_macro(self):
         self.bot.halt()
 
