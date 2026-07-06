@@ -426,6 +426,13 @@ class GameBot:
             self.log.log(f"Nav [{attempt+1}/30]: scene={scene.name}")
             hint = ""
 
+            # Any recognized, non-disconnected scene means navigation is
+            # actually working — even if it's slow (loading screens, lag,
+            # a long lobby queue). Only a truly blank/unrecognized screen or
+            # an unresolved disconnect should count toward "stuck".
+            if scene not in (Scene.DISCONNECTED, Scene.UNKNOWN):
+                self._note_progress()
+
             if scene == Scene.LOBBY:
                 self.log.log("Nav: → go_through_lobby")
                 self._go_through_lobby_safe()
@@ -435,21 +442,17 @@ class GameBot:
                 self._open_stage_menu()
             elif scene == Scene.STAGE_SELECT:
                 self.log.log("Nav: → select_and_start")
-                self._note_progress()
                 self._select_and_start()
                 return
             elif scene == Scene.IN_ROOM:
                 self.log.log("Nav: → click_start")
-                self._note_progress()
                 self._click_start()
                 return
             elif scene == Scene.BATTLING:
                 self.log.log("Nav: → already in battle")
-                self._note_progress()
                 return
             elif scene == Scene.RESULTS:
                 self.log.log("Nav: → replay_or_retry")
-                self._note_progress()
                 self._replay_or_retry()
                 return
             elif scene == Scene.DISCONNECTED:

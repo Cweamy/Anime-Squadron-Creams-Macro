@@ -39,8 +39,11 @@ DISCONNECT_IMGS = (
 
 # Stuck-recovery watchdog: if navigation makes no progress at all for this
 # long, force a deep-link rejoin; after this many such cycles in a row with
-# still no progress, kill Roblox and relaunch it fresh instead.
-STUCK_REJOIN_TIMEOUT_S = 120
+# still no progress, kill Roblox and relaunch it fresh instead. Only a
+# completely unrecognized screen or an unresolved disconnect counts against
+# this — normal-but-slow navigation (loading screens, lag, long lobby waits)
+# resets it, so this can afford to be generous.
+STUCK_REJOIN_TIMEOUT_S = 180
 STUCK_MAX_REJOINS = 3
 MAX_STATE_RETRIES = 20
 REFRESH_INTERVAL_MS = 1800000  # 30 minutes
