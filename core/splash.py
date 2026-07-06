@@ -8,6 +8,7 @@ import threading
 
 user32 = ctypes.windll.user32
 gdi32 = ctypes.windll.gdi32
+kernel32 = ctypes.windll.kernel32
 
 WS_POPUP = 0x80000000
 WS_VISIBLE = 0x10000000
@@ -35,6 +36,17 @@ WNDPROC = ctypes.WINFUNCTYPE(
 user32.DefWindowProcW.argtypes = [wt.HWND, ctypes.c_uint, wt.WPARAM, wt.LPARAM]
 user32.DefWindowProcW.restype = ctypes.c_long
 
+# Without these, ctypes falls back to a default restype/argtype of plain
+# c_int (32-bit) for every parameter/return value here. GetModuleHandleW
+# returns a pointer-sized module handle that's routinely outside the 32-bit
+# range on 64-bit Windows (ASLR randomizes the load address each run) — with
+# no restype declared, that handle gets silently truncated/mis-signed on
+# return, and then blows up as an OverflowError when the corrupted value is
+# later passed into CreateWindowExW's own undeclared (also-c_int) hInstance
+# parameter. Declaring real pointer-sized types fixes both ends.
+kernel32.GetModuleHandleW.argtypes = [wt.LPCWSTR]
+kernel32.GetModuleHandleW.restype = wt.HMODULE
+
 _hwnd = None
 _dot_count = 0
 _proc_ref = None
@@ -55,6 +67,17 @@ class WNDCLASSEXW(ctypes.Structure):
         ("lpszClassName", wt.LPCWSTR),
         ("hIconSm", wt.HICON),
     ]
+
+
+user32.RegisterClassExW.argtypes = [ctypes.POINTER(WNDCLASSEXW)]
+user32.RegisterClassExW.restype = wt.ATOM
+
+user32.CreateWindowExW.argtypes = [
+    wt.DWORD, wt.LPCWSTR, wt.LPCWSTR, wt.DWORD,
+    ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+    wt.HWND, wt.HMENU, wt.HINSTANCE, wt.LPVOID,
+]
+user32.CreateWindowExW.restype = wt.HWND
 
 
 def _wnd_proc(hwnd, msg, wparam, lparam):
@@ -125,7 +148,7 @@ def show():
     wc.lpfnWndProc = _proc_ref
     wc.hbrBackground = gdi32.CreateSolidBrush(BG_COLOR)
     wc.lpszClassName = CLASS_NAME
-    wc.hInstance = ctypes.windll.kernel32.GetModuleHandleW(None)
+    wc.hInstance = kernel32.GetModuleHandleW(None)
 
     user32.RegisterClassExW(ctypes.byref(wc))
 
