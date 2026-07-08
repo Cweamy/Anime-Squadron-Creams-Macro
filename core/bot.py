@@ -1533,5 +1533,7 @@ class GameBot:
             self._detail = f"{story} Ch.{self._st_chap}"
         elif self._mode == "Event":
             self._detail = "Boros Event"
+            self._diff = "Hard"  # hardcoded by the game, not a real choice
         elif self._mode == "Infinite":
             self._detail = "Infinite Farming"
+            self._diff = "Hard"  # hardcoded by the game, not a real choice

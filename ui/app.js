@@ -424,10 +424,16 @@ function onTaskModeChange(id, preset) {
     mapSel.disabled = false; mapSel.onchange = () => onTaskMapChange(id);
     diffSel.disabled = false;
   } else if (mode === 'Squadron' || mode === 'Story') {
-    mapSel.innerHTML = '<option>GT City</option><option>Marine Lobby</option><option>Ninja Village</option><option>Eclipse</option>'
-      + (mode === 'Story' ? '<option>The Ice Continent</option>' : '');
+    mapSel.innerHTML = '<option>GT City</option><option>Marine Lobby</option><option>Ninja Village</option><option>Eclipse</option><option>The Ice Continent</option>';
     mapSel.disabled = false; mapSel.onchange = () => onTaskMapChange(id);
     diffSel.disabled = false;
+  } else if (mode === 'Event' || mode === 'Infinite') {
+    // Neither mode has a map/chapter/difficulty picker in-game — Boros and
+    // Infinite are always Hard, hardcoded, not something the player chooses.
+    mapSel.innerHTML = `<option>${mode === 'Event' ? 'Boros Event' : 'Infinite Farming'}</option>`;
+    mapSel.disabled = true;
+    actSel.innerHTML = '<option>-</option>'; actSel.disabled = true;
+    diffSel.innerHTML = '<option selected>Hard</option>'; diffSel.disabled = true;
   } else {
     mapSel.innerHTML = '<option>-</option>'; mapSel.disabled = true;
     actSel.innerHTML = '<option>-</option>'; actSel.disabled = true;
@@ -471,7 +477,7 @@ function onTaskMapChange(id) {
     actSel.disabled = false;
     let max = 3;
     if (mode === 'Story') max = 10;
-    else if (map === 'Ninja Village' || map === 'Eclipse') max = 4;
+    else if (map === 'Ninja Village' || map === 'Eclipse' || map === 'The Ice Continent') max = 4;
     for (let i = 1; i <= max; i++) actSel.innerHTML += `<option>Chapter ${i}</option>`;
   }
   updateTraitRow(id);

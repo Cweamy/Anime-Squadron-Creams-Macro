@@ -322,7 +322,7 @@ class Api:
             pass
 
     def check_update(self) -> dict:
-        result = check_for_update()
+        result = check_for_update(self.logger)
         return result if result else {}
 
     def do_update(self, url: str) -> dict:
