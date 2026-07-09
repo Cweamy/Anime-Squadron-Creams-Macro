@@ -1009,7 +1009,16 @@ class GameBot:
         return (t.tm_hour * 60 + t.tm_min) // 30
 
     def _should_check_rewards(self) -> bool:
-        if not self._challenge_check or self._mode == "Challenge":
+        # _in_challenge (not self._mode == "Challenge") is the correct guard
+        # here: self._mode also gets set to "Challenge" for the *user's own*
+        # queued Challenge task (Aizen/Garou/Regular with Track Trait), which
+        # used to permanently block this check for that task's entire
+        # duration — it couldn't tell "my real task is Challenge mode" apart
+        # from "I'm mid an internal reward-scan side-quest". _in_challenge
+        # only becomes true once a desired reward has actually been found
+        # and the bot is actively farming it, which is the real case that
+        # needs to be guarded against re-triggering.
+        if not self._challenge_check or self._in_challenge:
             return False
         if not self._reward_files:
             return False
