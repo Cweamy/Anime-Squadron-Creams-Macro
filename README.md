@@ -47,6 +47,8 @@ No installer, no Python, no setup — just one `.exe`.
 
 On first launch, the macro asks permission before creating anything on disk — a `settings.json` file and a `Loadouts` folder, both placed next to the `.exe`. Decline and it still works, it just won't remember anything between sessions.
 
+**Sharing it with someone (e.g. on Discord)?** The full exe is 40+ MB because of OpenCV/numpy, which is too big for most Discord uploads. Grab **`Anime Squadron Creams Macro Bootstrapper.exe`** from the same release instead — it's under 10 MB, and on first run it just downloads the real exe from this repo's Releases and launches it. Same install location, same behavior after that; it's just a lighter file to pass around.
+
 ## Features
 
 - **Task Queue** — Queue multiple farming tasks with drag-and-drop reordering, removal, and looping support.

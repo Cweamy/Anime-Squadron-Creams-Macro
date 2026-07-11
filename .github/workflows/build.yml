@@ -55,6 +55,9 @@ jobs:
       - name: Build exe (Nuitka)
         run: python build_nuitka.py
 
+      - name: Build bootstrapper exe (Nuitka)
+        run: python build_bootstrap.py
+
       - name: Get version from tag
         id: version
         shell: bash
@@ -66,4 +69,6 @@ jobs:
           tag_name: ${{ steps.version.outputs.tag }}
           name: "Cream's Macro ${{ steps.version.outputs.tag }}"
           generate_release_notes: true
-          files: "dist-nuitka/Anime Squadron Creams Macro.exe"
+          files: |
+            dist-nuitka/Anime Squadron Creams Macro.exe
+            dist-nuitka/Anime Squadron Creams Macro Bootstrapper.exe
