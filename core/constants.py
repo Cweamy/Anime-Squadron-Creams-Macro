@@ -51,6 +51,7 @@ REFRESH_INTERVAL_MS = 1800000  # 30 minutes
 RAID_MAP = {
     "GT": "raid/gt.png",
     "Eclipse": "raid/eclipse.png",
+    "Infinity Train": "raid/infinity_train.png",
 }
 
 RAID_ACT_BY_MAP = {
@@ -65,6 +66,15 @@ RAID_ACT_BY_MAP = {
         "Golden Age 2": "raid/golden_age_2.png",
         "Golden Age 3": "raid/golden_age_3.png",
         "The Eclipse": "raid/the_eclipse.png",
+    },
+    # Unlike GT/Eclipse, none of Infinity Train's acts (incl. the last one,
+    # Runaway Express) get trait tracking, so there's no _trait_stage_info()
+    # entry for this map at all.
+    "Infinity Train": {
+        "Demon's Awakening": "raid/demon_awakening.png",
+        "Bloodmoon Rising": "raid/bloodmoon_rising.png",
+        "Feast of Shadows": "raid/feast_of_shadows.png",
+        "Runaway Express": "raid/runaway_express.png",
     },
 }
 
@@ -87,6 +97,7 @@ SQUAD_STORY_MAP = {
     "Ninja Village": "squadron/ninja_village.png",
     "Eclipse": "squadron/eclipse.png",
     "The Ice Continent": "squadron/the_ice_continent.png",
+    "Infinity Train": "squadron/infinity_train.png",
 }
 
 SQUAD_CHAP_MAP = {

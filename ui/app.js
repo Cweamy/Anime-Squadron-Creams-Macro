@@ -416,7 +416,7 @@ function onTaskModeChange(id, preset) {
     actSel.innerHTML = '<option>-</option>'; actSel.disabled = true;
     diffSel.disabled = false;
   } else if (mode === 'Raid') {
-    mapSel.innerHTML = '<option>GT</option><option>Eclipse</option>';
+    mapSel.innerHTML = '<option>GT</option><option>Eclipse</option><option>Infinity Train</option>';
     mapSel.disabled = false; mapSel.onchange = () => onTaskMapChange(id);
     actSel.onchange = () => updateTraitRow(id);
     diffSel.disabled = false;
@@ -428,7 +428,7 @@ function onTaskModeChange(id, preset) {
     // so the trait row needs to refresh when difficulty changes too.
     diffSel.onchange = () => updateTraitRow(id);
   } else if (mode === 'Squadron' || mode === 'Story') {
-    mapSel.innerHTML = '<option>GT City</option><option>Marine Lobby</option><option>Ninja Village</option><option>Eclipse</option><option>The Ice Continent</option>';
+    mapSel.innerHTML = '<option>GT City</option><option>Marine Lobby</option><option>Ninja Village</option><option>Eclipse</option><option>The Ice Continent</option><option>Infinity Train</option>';
     mapSel.disabled = false; mapSel.onchange = () => onTaskMapChange(id);
     diffSel.disabled = false;
   } else if (mode === 'Event' || mode === 'Infinite') {
@@ -455,6 +455,7 @@ function onTaskModeChange(id, preset) {
 const RAID_ACTS = {
   'GT': ['Hidden Danger', 'Saiyan Hunt', 'Ruler Dragon', 'The Ultimate Evil'],
   'Eclipse': ['Golden Age', 'Golden Age 2', 'Golden Age 3', 'The Eclipse'],
+  'Infinity Train': ["Demon's Awakening", 'Bloodmoon Rising', 'Feast of Shadows', 'Runaway Express'],
 };
 
 const INVASION_ACTS = {
@@ -481,7 +482,7 @@ function onTaskMapChange(id) {
     actSel.disabled = false;
     let max = 3;
     if (mode === 'Story') max = 10;
-    else if (map === 'Ninja Village' || map === 'Eclipse' || map === 'The Ice Continent') max = 4;
+    else if (map === 'Ninja Village' || map === 'Eclipse' || map === 'The Ice Continent' || map === 'Infinity Train') max = 4;
     for (let i = 1; i <= max; i++) actSel.innerHTML += `<option>Chapter ${i}</option>`;
   }
   updateTraitRow(id);

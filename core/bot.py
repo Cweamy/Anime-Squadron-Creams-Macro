@@ -740,16 +740,65 @@ class GameBot:
         elif self._mode == "Story":
             self._pick_story_chap()
 
-    def _pick_map_then_act(self, map_img: str, act_img: str):
-        for _ in range(5):
+    def _find_map_with_scroll(self, map_img: str, anchor_imgs: tuple = (),
+                              attempts: int = 8) -> tuple[int, int] | None:
+        """Some maps (e.g. Infinity Train) sit below the fold in the map
+        list and aren't visible until you scroll down. Try a couple of
+        plain lookups first (covers every map that's visible immediately,
+        no wasted scroll). If still not found, click a map that's always
+        visible (e.g. GT City/Marine Lobby) once to land on the same
+        row/area as the hidden one, then nudge the scroll a small amount
+        at a time — re-checking after every nudge — instead of one long
+        scroll that can blow straight past the target and land on some
+        other stage's row entirely.
+        """
+        anchor_pos = None
+        clicked_anchor = False
+        for i in range(attempts):
             if self._halt.is_set():
-                return
+                return None
             pos = self._see(map_img)
             if pos:
-                self._tap(pos, times=2, gap=100)
-                self._sleep(0.5)
-                break
+                return pos
+            if i >= 1:
+                if anchor_pos is None:
+                    for a in anchor_imgs:
+                        anchor_pos = self._see(a)
+                        if anchor_pos:
+                            break
+                if anchor_pos:
+                    if not clicked_anchor:
+                        self._tap(anchor_pos, times=1, gap=100, jitter=False)
+                        self._sleep(0.2)
+                        clicked_anchor = True
+                    self._scroll_small_at(anchor_pos)
+                else:
+                    self.input.scroll_chapter_list(self._rx, self._ry, self._rw, self._rh)
             self._sleep(0.3)
+        return None
+
+    def _scroll_small_at(self, pos: tuple[int, int]):
+        """A single standard wheel-click worth of scroll, not several
+        ticks bundled together — the game's scroll surface has enough
+        momentum/smooth-scroll that even a handful of rapid ticks
+        compounds into a huge jump instead of a small nudge. The outer
+        retry loop in _find_map_with_scroll calls this once per attempt,
+        so multiple gentle nudges happen naturally over time if needed."""
+        from core.mouse import move_to, scroll_down
+        move_to(pos[0], pos[1])
+        self._sleep(0.05)
+        scroll_down(-120)
+        self._sleep(0.15)
+
+    def _pick_map_then_act(self, map_img: str, act_img: str):
+        pos = self._find_map_with_scroll(map_img, anchor_imgs=("raid/gt.png", "raid/eclipse.png"))
+        if not pos:
+            self.log.log(f"Couldn't find map {map_img} even after scrolling — "
+                         f"stopping here instead of blindly clicking a chapter/act "
+                         f"on whatever map is currently on screen")
+            return
+        self._tap(pos, times=2, gap=100)
+        self._sleep(0.5)
 
         for _ in range(5):
             if self._halt.is_set():
@@ -762,15 +811,14 @@ class GameBot:
             self._sleep(0.3)
 
     def _pick_sq_story_chap(self):
-        for _ in range(5):
-            if self._halt.is_set():
-                return
-            pos = self._see(self._sq_story)
-            if pos:
-                self._tap(pos, times=2, gap=100)
-                self._sleep(0.3)
-                break
-            self._sleep(0.3)
+        pos = self._find_map_with_scroll(self._sq_story, anchor_imgs=("squadron/gt_city.png", "squadron/marine_lobby.png"))
+        if not pos:
+            self.log.log(f"Couldn't find map {self._sq_story} even after scrolling — "
+                         f"stopping here instead of blindly clicking a chapter on "
+                         f"whatever map is currently on screen")
+            return
+        self._tap(pos, times=2, gap=100)
+        self._sleep(0.3)
 
         ci = {"squadron/chapter1.png": 0, "squadron/chapter2.png": 1, "squadron/chapter3.png": 2, "squadron/chapter4.png": 3}
         cidx = ci.get(self._sq_chap, 0)
@@ -780,15 +828,14 @@ class GameBot:
         self._sleep(0.3)
 
     def _pick_story_chap(self):
-        for _ in range(5):
-            if self._halt.is_set():
-                return
-            pos = self._see(self._st_story_img)
-            if pos:
-                self._tap(pos, times=2, gap=100)
-                self._sleep(0.3)
-                break
-            self._sleep(0.3)
+        pos = self._find_map_with_scroll(self._st_story_img, anchor_imgs=("squadron/gt_city.png", "squadron/marine_lobby.png"))
+        if not pos:
+            self.log.log(f"Couldn't find map {self._st_story_img} even after scrolling — "
+                         f"stopping here instead of blindly clicking a chapter on "
+                         f"whatever map is currently on screen")
+            return
+        self._tap(pos, times=2, gap=100)
+        self._sleep(0.3)
 
         cx = self._rx + self._rw * 490 // 1000
         chap_y = self._ry + self._rh * 400 // 1000
