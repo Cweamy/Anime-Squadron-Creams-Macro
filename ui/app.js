@@ -407,6 +407,7 @@ function onTaskModeChange(id, preset) {
   const diffSel = card.querySelector('.tDiff');
   mapSel.onchange = null;
   actSel.onchange = null;
+  diffSel.onchange = null;
 
   if (mode === 'Challenge') {
     mapSel.innerHTML = '<option>Regular</option><option>Aizen</option><option>Garou</option>';
@@ -423,6 +424,9 @@ function onTaskModeChange(id, preset) {
     mapSel.innerHTML = '<option>The Lava Continent</option>';
     mapSel.disabled = false; mapSel.onchange = () => onTaskMapChange(id);
     diffSel.disabled = false;
+    // Scorched Horizon's trait cap (100 Hard / 40 Normal) depends on this,
+    // so the trait row needs to refresh when difficulty changes too.
+    diffSel.onchange = () => updateTraitRow(id);
   } else if (mode === 'Squadron' || mode === 'Story') {
     mapSel.innerHTML = '<option>GT City</option><option>Marine Lobby</option><option>Ninja Village</option><option>Eclipse</option><option>The Ice Continent</option>';
     mapSel.disabled = false; mapSel.onchange = () => onTaskMapChange(id);
@@ -488,13 +492,21 @@ function removeTask(id) { const el = document.getElementById('task_'+id); if (el
 // ── Trait Farm (per-task option) ──
 let traitStageData = { stages: {}, last_reset: '' };
 
-function traitStageInfo(mode, map, act) {
+function traitStageInfo(mode, map, act, diff) {
   if (mode === 'Challenge') {
     if (map === 'Garou') return { key: 'Garou', limit: 30 };
     if (map === 'Aizen') return { key: 'Aizen', limit: 100 };
   } else if (mode === 'Raid') {
     if (map === 'GT' && act === 'The Ultimate Evil') return { key: 'GT — The Ultimate Evil', limit: 100 };
     if (map === 'Eclipse' && act === 'The Eclipse') return { key: 'Eclipse — The Eclipse', limit: 100 };
+  } else if (mode === 'Invasion') {
+    if (map === 'The Lava Continent' && act === 'Scorched Horizon') {
+      // Scorched Horizon's daily cap differs by difficulty — tracked as
+      // separate stages/counters rather than one key with a shifting limit.
+      return diff === 'Hard'
+        ? { key: 'Invasion — Scorched Horizon (Hard)', limit: 100 }
+        : { key: 'Invasion — Scorched Horizon (Normal)', limit: 40 };
+    }
   }
   return null;
 }
@@ -507,7 +519,8 @@ function updateTraitRow(id) {
   const mode = card.querySelector('.tMode').value;
   const map = card.querySelector('.tMap').value;
   const act = card.querySelector('.tAct').value;
-  const info = traitStageInfo(mode, map, act);
+  const diff = card.querySelector('.tDiff').value;
+  const info = traitStageInfo(mode, map, act, diff);
 
   if (!info) {
     row.style.display = 'none';

@@ -11,6 +11,7 @@ from core.constants import (
     SQUAD_STORY_MAP, SQUAD_CHAP_MAP,
     TRAIT_LIMIT, GAROU_LIMIT, TRAIT_STAGES, TRAIT_DROP_IMGS, TRAIT_DROP_THRESHOLD,
     TRAIT_KEY_AIZEN, TRAIT_KEY_GAROU, TRAIT_KEY_GT_ULTIMATE_EVIL, TRAIT_KEY_ECLIPSE_THE_ECLIPSE,
+    TRAIT_KEY_SCORCHED_HORIZON_HARD, TRAIT_KEY_SCORCHED_HORIZON_NORMAL, SCORCHED_HORIZON_NORMAL_LIMIT,
     DISCONNECT_IMGS, STUCK_REJOIN_TIMEOUT_S, STUCK_MAX_REJOINS,
 )
 from core.screen import Screen
@@ -119,6 +120,8 @@ class GameBot:
         self._inv_map_img = ""
         self._inv_act = ""
         self._inv_diff = ""
+        self._inv_map_name = ""
+        self._inv_act_name = ""
         self._sq_story = ""
         self._sq_chap = ""
         self._sq_diff = ""
@@ -1203,8 +1206,9 @@ class GameBot:
 
     def _trait_stage_info(self) -> tuple[str, int] | None:
         """Return (stage_key, limit) if the current task's stage tracks
-        trait drops, else None. Aizen/Ultimate Evil/The Eclipse cap at 100,
-        Garou caps at 30."""
+        trait drops, else None. Aizen/Ultimate Evil/The Eclipse/Scorched
+        Horizon (Hard) cap at 100, Garou caps at 30, Scorched Horizon
+        (Normal) caps at 40."""
         if self._mode == "Challenge":
             if self._challenge_type == "Garou":
                 return (TRAIT_KEY_GAROU, GAROU_LIMIT)
@@ -1215,6 +1219,11 @@ class GameBot:
                 return (TRAIT_KEY_GT_ULTIMATE_EVIL, TRAIT_LIMIT)
             if self._raid_map_name == "Eclipse" and self._raid_act_name == "The Eclipse":
                 return (TRAIT_KEY_ECLIPSE_THE_ECLIPSE, TRAIT_LIMIT)
+        elif self._mode == "Invasion":
+            if self._inv_map_name == "The Lava Continent" and self._inv_act_name == "Scorched Horizon":
+                if self._diff == "Hard":
+                    return (TRAIT_KEY_SCORCHED_HORIZON_HARD, TRAIT_LIMIT)
+                return (TRAIT_KEY_SCORCHED_HORIZON_NORMAL, SCORCHED_HORIZON_NORMAL_LIMIT)
         return None
 
     def _check_trait_reset(self):
@@ -1525,6 +1534,8 @@ class GameBot:
             self._inv_map_img = INVASION_MAP.get(inv_map, "invasion/the_lava_continent.png")
             self._inv_act = acts.get(act, next(iter(acts.values()), "invasion/ashfall_continent.png"))
             self._inv_diff = diff_file
+            self._inv_map_name = inv_map
+            self._inv_act_name = act
             self._detail = f"{inv_map} — {act}"
         elif self._mode == "Squadron":
             story = t.get("map", "GT City")

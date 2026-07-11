@@ -101,15 +101,23 @@ SQUAD_CHAP_MAP = {
 # given stage is shared across every task that farms it.
 TRAIT_LIMIT = 100
 GAROU_LIMIT = 30
+SCORCHED_HORIZON_NORMAL_LIMIT = 40
 TRAIT_KEY_AIZEN = "Aizen"
 TRAIT_KEY_GAROU = "Garou"
 TRAIT_KEY_GT_ULTIMATE_EVIL = "GT — The Ultimate Evil"
 TRAIT_KEY_ECLIPSE_THE_ECLIPSE = "Eclipse — The Eclipse"
+# Scorched Horizon's daily cap differs by difficulty (100 Hard / 40 Normal),
+# so Normal and Hard are tracked as separate stages/counters rather than one
+# key with a limit that changes depending on which difficulty you last ran.
+TRAIT_KEY_SCORCHED_HORIZON_HARD = "Invasion — Scorched Horizon (Hard)"
+TRAIT_KEY_SCORCHED_HORIZON_NORMAL = "Invasion — Scorched Horizon (Normal)"
 TRAIT_STAGES = [
     (TRAIT_KEY_AIZEN, TRAIT_LIMIT),
     (TRAIT_KEY_GAROU, GAROU_LIMIT),
     (TRAIT_KEY_GT_ULTIMATE_EVIL, TRAIT_LIMIT),
     (TRAIT_KEY_ECLIPSE_THE_ECLIPSE, TRAIT_LIMIT),
+    (TRAIT_KEY_SCORCHED_HORIZON_HARD, TRAIT_LIMIT),
+    (TRAIT_KEY_SCORCHED_HORIZON_NORMAL, SCORCHED_HORIZON_NORMAL_LIMIT),
 ]
 TRAIT_DROP_IMGS = ("drop/2_Trait.png", "drop/1_Trait.png")  # check 2 before 1
 TRAIT_DROP_THRESHOLD = 0.92
