@@ -61,7 +61,7 @@ On first launch, the macro asks permission before creating anything on disk — 
 - **Event (Boros)** — Fully vision-based: opens the event icon, presses Play and Find Match, then farms battles automatically. Replays on a win; leaves cleanly on a loss (no in-place replay after a loss in this mode) — and if a Retry/Replay button ever gets stuck on screen for 10 seconds without going away, it backs out via Leave instead of hammering a dead button.
 - **Infinite Farming** — Presses Play, leaves to warp to a fixed spawn point, walks straight for ~6 seconds to reach the portal, then presses Play again to queue up. Rounds are picked and replayed normally after that, same as every other mode.
 - **Challenge Reward Scanner** — Automatically checks challenge rewards every 30 minutes. Select desired rewards (Stat Reroll, Trait Reroll, Gem) and the macro farms them until the slot resets. Priority mode leaves the current battle instantly when rewards refresh. Toggling Enabled/Priority/rewards applies immediately, even mid-run — no need to stop and restart the queue.
-- **Trait Farm Tracking** — Enable "Track Trait" per task to track daily trait drops for that stage (Aizen, Garou, GT — The Ultimate Evil, Eclipse — The Eclipse). Each stage has its own daily limit (Garou caps at 30, others at 100); once hit, the task is skipped automatically and resets daily at 00:00 UTC.
+- **Trait Farm Tracking** — Enable "Track Trait" per task to track daily trait drops for that stage (Aizen, Garou, Ghoul City, GT — The Ultimate Evil, Eclipse — The Eclipse). Each stage has its own daily limit (Garou caps at 30, Ghoul City at 20, others at 100); once hit, the task is skipped automatically and resets daily at 00:00 UTC.
 - **Live Dashboard** — Win rate, run count, V/D stats, session timer, and task progress bar — all updating in real time.
 - **Interactive Tutorial** — A built-in step-by-step "How to Use" walkthrough opens on first launch and can be reopened anytime via the **?** icon in the header.
 - **Log Viewer** — Built-in live log feed for debugging.
@@ -92,7 +92,7 @@ On first launch, the macro asks permission before creating anything on disk — 
 | **Invasion** | The Lava Continent | Ashfall Continent, Infernal Landmass, Magma Rift, Scorched Horizon |
 | **Squadron** | GT City, Marine Lobby, Ninja Village, Eclipse | Chapter 1–4 |
 | **Story** | GT City, Marine Lobby, Ninja Village, Eclipse, The Ice Continent | Chapter 1–10 |
-| **Challenge** | Regular, Aizen, Garou | Normal / Hard (Aizen & Garou) |
+| **Challenge** | Regular, Aizen, Garou, Ghoul City | Normal / Hard (Aizen, Garou & Ghoul City) — Ghoul City also has Chapter 1 / Chapter 2 |
 | **Event (Boros)** | — | No map/chapter — just Play + Find Match |
 | **Infinite** | — | No map/chapter — Play, warp, walk to the portal, Play |
 

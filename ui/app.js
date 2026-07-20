@@ -410,10 +410,9 @@ function onTaskModeChange(id, preset) {
   diffSel.onchange = null;
 
   if (mode === 'Challenge') {
-    mapSel.innerHTML = '<option>Regular</option><option>Aizen</option><option>Garou</option>';
+    mapSel.innerHTML = '<option>Regular</option><option>Aizen</option><option>Garou</option><option>Ghoul City</option>';
     mapSel.disabled = false;
-    mapSel.onchange = () => updateTraitRow(id);
-    actSel.innerHTML = '<option>-</option>'; actSel.disabled = true;
+    mapSel.onchange = () => onTaskMapChange(id);
     diffSel.disabled = false;
   } else if (mode === 'Raid') {
     mapSel.innerHTML = '<option>GT</option><option>Eclipse</option><option>Infinity Train</option>';
@@ -446,7 +445,7 @@ function onTaskModeChange(id, preset) {
 
   if (preset) {
     applyPreset(id, preset);
-  } else if (mode === 'Raid' || mode === 'Invasion' || mode === 'Squadron' || mode === 'Story') {
+  } else if (mode === 'Challenge' || mode === 'Raid' || mode === 'Invasion' || mode === 'Squadron' || mode === 'Story') {
     onTaskMapChange(id);
   }
   updateTraitRow(id);
@@ -470,7 +469,15 @@ function onTaskMapChange(id) {
   const actSel = card.querySelector('.tAct');
   actSel.innerHTML = '';
 
-  if (mode === 'Raid') {
+  if (mode === 'Challenge') {
+    if (map === 'Ghoul City') {
+      actSel.innerHTML = '<option>Chapter 1</option><option>Chapter 2</option>';
+      actSel.disabled = false;
+    } else {
+      actSel.innerHTML = '<option>-</option>';
+      actSel.disabled = true;
+    }
+  } else if (mode === 'Raid') {
     const acts = RAID_ACTS[map] || RAID_ACTS['GT'];
     for (const a of acts) actSel.innerHTML += `<option>${a}</option>`;
     actSel.disabled = false;
@@ -497,6 +504,7 @@ function traitStageInfo(mode, map, act, diff) {
   if (mode === 'Challenge') {
     if (map === 'Garou') return { key: 'Garou', limit: 30 };
     if (map === 'Aizen') return { key: 'Aizen', limit: 100 };
+    if (map === 'Ghoul City') return { key: 'Ghoul City', limit: 20 };
   } else if (mode === 'Raid') {
     if (map === 'GT' && act === 'The Ultimate Evil') return { key: 'GT — The Ultimate Evil', limit: 100 };
     if (map === 'Eclipse' && act === 'The Eclipse') return { key: 'Eclipse — The Eclipse', limit: 100 };

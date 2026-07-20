@@ -9,8 +9,8 @@ from core.constants import (
     FIXED_WIN_W, FIXED_WIN_H, PLACE_ID,
     RAID_MAP, RAID_ACT_BY_MAP, INVASION_MAP, INVASION_ACT_BY_MAP,
     SQUAD_STORY_MAP, SQUAD_CHAP_MAP,
-    TRAIT_LIMIT, GAROU_LIMIT, TRAIT_STAGES, TRAIT_DROP_IMGS, TRAIT_DROP_THRESHOLD,
-    TRAIT_KEY_AIZEN, TRAIT_KEY_GAROU, TRAIT_KEY_GT_ULTIMATE_EVIL, TRAIT_KEY_ECLIPSE_THE_ECLIPSE,
+    TRAIT_LIMIT, GAROU_LIMIT, GHOUL_CITY_LIMIT, TRAIT_STAGES, TRAIT_DROP_IMGS, TRAIT_DROP_THRESHOLD,
+    TRAIT_KEY_AIZEN, TRAIT_KEY_GAROU, TRAIT_KEY_GHOUL_CITY, TRAIT_KEY_GT_ULTIMATE_EVIL, TRAIT_KEY_ECLIPSE_THE_ECLIPSE,
     TRAIT_KEY_SCORCHED_HORIZON_HARD, TRAIT_KEY_SCORCHED_HORIZON_NORMAL, SCORCHED_HORIZON_NORMAL_LIMIT,
     DISCONNECT_IMGS, STUCK_REJOIN_TIMEOUT_S, STUCK_MAX_REJOINS,
 )
@@ -130,6 +130,7 @@ class GameBot:
         self._st_diff = ""
         self._challenge_type = "Regular"
         self._challenge_diff = ""
+        self._challenge_chap = ""
         self._raid_map_name = ""
         self._raid_act_name = ""
 
@@ -731,6 +732,8 @@ class GameBot:
 
         if self._mode == "Challenge":
             self._pick_challenge()
+            if self._challenge_type == "Ghoul City":
+                self._pick_challenge_chapter()
         elif self._mode == "Raid":
             self._pick_map_then_act(self._raid_map_img, self._raid_act)
         elif self._mode == "Invasion":
@@ -860,6 +863,7 @@ class GameBot:
             "Regular": "challenge/regular.png",
             "Aizen": "challenge/aizen.png",
             "Garou": "challenge/garou.png",
+            "Ghoul City": "challenge/ghoul_city.png",
         }
         ctype = override_type or self._challenge_type
         img = img_map.get(ctype, "challenge/regular.png")
@@ -867,10 +871,46 @@ class GameBot:
         y1 = self._ry + self._rh * 25 // 100
         x2 = self._rx + self._rw * 45 // 100
         y2 = self._ry + self._rh * 80 // 100
-        pos = self.vision.find_nav_in_subregion(img, x1, y1, x2, y2, 0.70)
-        if pos:
-            self._tap(pos, times=2, gap=80, jitter=False)
-        self._sleep(0.3)
+
+        for _ in range(6):
+            if self._halt.is_set():
+                return
+            pos = self.vision.find_nav_in_subregion(img, x1, y1, x2, y2, 0.70)
+            if pos:
+                self._tap(pos, times=2, gap=80, jitter=False)
+                self._sleep(0.3)
+                return
+            self._sleep(0.3)
+
+        self.log.log(f"Couldn't find the '{ctype}' stage button ({img}) on screen — "
+                      f"staying on whatever stage was already selected instead of "
+                      f"blindly continuing to difficulty/Create Room")
+
+    def _pick_challenge_chapter(self):
+        """Ghoul City (unlike Regular/Aizen/Garou) has its own 2-chapter
+        sub-select in the Challenge screen's middle panel — pick the right
+        one before difficulty/Create Room, same as Squadron/Story chapters
+        but this panel is image-matched rather than fixed-offset since its
+        layout differs from the Squadron one."""
+        img = "challenge/ghoul_city_chapter2.png" if self._challenge_chap == "Chapter 2" else "challenge/ghoul_city_chapter1.png"
+        x1 = self._rx + self._rw * 20 // 100
+        y1 = self._ry + self._rh * 10 // 100
+        x2 = self._rx + self._rw * 60 // 100
+        y2 = self._ry + self._rh * 40 // 100
+
+        for _ in range(6):
+            if self._halt.is_set():
+                return
+            pos = self.vision.find_nav_in_subregion(img, x1, y1, x2, y2, 0.70)
+            if pos:
+                self._tap(pos, times=2, gap=100, jitter=False)
+                self._sleep(0.3)
+                return
+            self._sleep(0.3)
+
+        self.log.log(f"Couldn't find the Ghoul City '{self._challenge_chap or 'Chapter 1'}' "
+                      f"button ({img}) on screen — staying on whatever chapter was already "
+                      f"selected instead of blindly continuing to difficulty/Create Room")
 
     def _pick_difficulty(self):
         diff_file = {
@@ -1254,13 +1294,16 @@ class GameBot:
     def _trait_stage_info(self) -> tuple[str, int] | None:
         """Return (stage_key, limit) if the current task's stage tracks
         trait drops, else None. Aizen/Ultimate Evil/The Eclipse/Scorched
-        Horizon (Hard) cap at 100, Garou caps at 30, Scorched Horizon
-        (Normal) caps at 40."""
+        Horizon (Hard) cap at 100, Garou caps at 30, Ghoul City caps at 20
+        (shared across both its chapters), Scorched Horizon (Normal) caps
+        at 40."""
         if self._mode == "Challenge":
             if self._challenge_type == "Garou":
                 return (TRAIT_KEY_GAROU, GAROU_LIMIT)
             if self._challenge_type == "Aizen":
                 return (TRAIT_KEY_AIZEN, TRAIT_LIMIT)
+            if self._challenge_type == "Ghoul City":
+                return (TRAIT_KEY_GHOUL_CITY, GHOUL_CITY_LIMIT)
         elif self._mode == "Raid":
             if self._raid_map_name == "GT" and self._raid_act_name == "The Ultimate Evil":
                 return (TRAIT_KEY_GT_ULTIMATE_EVIL, TRAIT_LIMIT)
@@ -1563,7 +1606,12 @@ class GameBot:
         if self._mode == "Challenge":
             self._challenge_type = t.get("map", "Regular")
             self._challenge_diff = diff_file
-            self._detail = self._challenge_type
+            if self._challenge_type == "Ghoul City":
+                self._challenge_chap = t.get("act", "Chapter 1")
+                self._detail = f"{self._challenge_type} {self._challenge_chap}"
+            else:
+                self._challenge_chap = ""
+                self._detail = self._challenge_type
         elif self._mode == "Raid":
             raid_map = t.get("map", "GT")
             act = t.get("act", list(RAID_ACT_BY_MAP.get(raid_map, {}).keys())[0] if raid_map in RAID_ACT_BY_MAP else "Hidden Danger")
